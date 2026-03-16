@@ -69,7 +69,7 @@ licytacje-publiczne/
 │   │       ├── Filters.tsx
 │   │       ├── AuctionCard.tsx
 │   │       └── AuctionDetail.tsx
-│   ├── vite.config.ts               # base: /licytacje-publiczne/
+│   ├── vite.config.ts               # base: /frontend/
 │   └── tsconfig.json
 ├── data/
 │   └── auctions.json                # Dane wygenerowane przez scraper

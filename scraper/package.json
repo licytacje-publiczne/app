@@ -1,0 +1,22 @@
+{
+  "name": "scraper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape": "tsx src/index.ts",
+    "scrape:govpl": "tsx src/index.ts --platform govpl",
+    "scrape:bip": "tsx src/index.ts --platform bip"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "pdf-parse": "^1.1.1",
+    "shared": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pdf-parse": "^1.1.4",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
