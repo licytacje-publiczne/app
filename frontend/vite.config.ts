@@ -4,7 +4,7 @@ import { resolve } from "path";
 
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: "/frontend/",
+  base: "/",
   resolve: {
     alias: {
       shared: resolve(__dirname, "../shared"),
