@@ -37,6 +37,9 @@ jobs:
         run: npm run build
         working-directory: frontend
 
+      - name: SPA fallback (404.html)
+        run: cp frontend/dist/index.html frontend/dist/404.html
+
       - name: Copy data to dist
         run: |
           mkdir -p frontend/dist/data

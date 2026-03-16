@@ -41,10 +41,18 @@ export function AuctionCard({ auction, onClick }: AuctionCardProps) {
 
   const firstItem = auction.items[0];
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Allow ctrl+click / middle-click to open in new tab naturally
+    if (e.ctrlKey || e.metaKey || e.button === 1) return;
+    e.preventDefault();
+    onClick();
+  };
+
   return (
-    <article
+    <a
+      href={`/ogloszenie/${auction.id}`}
       className={`auction-card ${isExpired ? "auction-card--expired" : ""} ${isArchived ? "auction-card--archived" : ""}`}
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div className="auction-card-header">
         <div className="auction-card-badges">
@@ -82,6 +90,6 @@ export function AuctionCard({ auction, onClick }: AuctionCardProps) {
       {auction.items.length > 1 && (
         <div className="auction-card-more">+ {auction.items.length - 1} wiecej pozycji</div>
       )}
-    </article>
+    </a>
   );
 }

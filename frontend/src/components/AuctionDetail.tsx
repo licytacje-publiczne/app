@@ -34,9 +34,18 @@ export function AuctionDetail({ auction, onBack }: AuctionDetailProps) {
 
   return (
     <div className="detail">
-      <button className="btn btn-back" onClick={onBack}>
+      <a
+        href="/"
+        className="btn btn-back"
+        onClick={(e) => {
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            onBack();
+          }
+        }}
+      >
         Powrot do listy
-      </button>
+      </a>
 
       <div
         className={`detail-card ${isExpired ? "detail-card--expired" : ""} ${isArchived ? "detail-card--archived" : ""}`}

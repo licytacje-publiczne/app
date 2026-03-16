@@ -1,7 +1,8 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./db";
 import { useAuctionData } from "./hooks/useAuctionData";
+import { useRouter } from "./hooks/useRouter";
 import { AuctionCard } from "./components/AuctionCard";
 import { AuctionDetail } from "./components/AuctionDetail";
 import { Filters, type FilterState } from "./components/Filters";
@@ -9,7 +10,7 @@ import { Header } from "./components/Header";
 
 export function App() {
   const { loading, error, lastUpdated, refresh } = useAuctionData();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { auctionId, openAuction, goHome } = useRouter();
   const [filters, setFilters] = useState<FilterState>({
     hideExpired: true,
     hideArchived: true,
@@ -75,8 +76,8 @@ export function App() {
   ]);
 
   const selectedAuction = useMemo(
-    () => filteredAuctions.find((a) => a.id === selectedId) ?? null,
-    [filteredAuctions, selectedId],
+    () => (auctionId ? (allAuctions?.find((a) => a.id === auctionId) ?? null) : null),
+    [allAuctions, auctionId],
   );
 
   // Unique values for filter dropdowns
@@ -90,9 +91,7 @@ export function App() {
     return { cities, voivodeships, types };
   }, [allAuctions]);
 
-  const handleBack = useCallback(() => setSelectedId(null), []);
-
-  if (selectedAuction) {
+  if (auctionId) {
     return (
       <div className="app">
         <Header
@@ -101,7 +100,13 @@ export function App() {
           onRefresh={refresh}
           auctionCount={filteredAuctions.length}
         />
-        <AuctionDetail auction={selectedAuction} onBack={handleBack} />
+        {loading && !allAuctions?.length ? (
+          <div className="loading">Pobieranie danych...</div>
+        ) : selectedAuction ? (
+          <AuctionDetail auction={selectedAuction} onBack={goHome} />
+        ) : (
+          <div className="empty">Nie znaleziono ogloszenia o podanym ID.</div>
+        )}
       </div>
     );
   }
@@ -129,7 +134,7 @@ export function App() {
             <AuctionCard
               key={auction.id}
               auction={auction}
-              onClick={() => setSelectedId(auction.id)}
+              onClick={() => openAuction(auction.id)}
             />
           ))
         )}
