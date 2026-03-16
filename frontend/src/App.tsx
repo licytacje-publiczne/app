@@ -93,7 +93,7 @@ export function App() {
 
   if (auctionId) {
     return (
-      <div className="app">
+      <div className="mx-auto min-h-screen max-w-5xl px-4 pb-10">
         <Header
           lastUpdated={lastUpdated}
           loading={loading}
@@ -101,18 +101,20 @@ export function App() {
           auctionCount={filteredAuctions.length}
         />
         {loading && !allAuctions?.length ? (
-          <div className="loading">Pobieranie danych...</div>
+          <div className="py-16 text-center text-gray-400">Pobieranie danych...</div>
         ) : selectedAuction ? (
           <AuctionDetail auction={selectedAuction} onBack={goHome} />
         ) : (
-          <div className="empty">Nie znaleziono ogloszenia o podanym ID.</div>
+          <div className="py-16 text-center text-gray-400">
+            Nie znaleziono ogloszenia o podanym ID.
+          </div>
         )}
       </div>
     );
   }
 
   return (
-    <div className="app">
+    <div className="mx-auto min-h-screen max-w-5xl px-4 pb-10">
       <Header
         lastUpdated={lastUpdated}
         loading={loading}
@@ -120,15 +122,21 @@ export function App() {
         auctionCount={filteredAuctions.length}
       />
 
-      {error && <div className="error-banner">{error}</div>}
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {error}
+        </div>
+      )}
 
       <Filters filters={filters} onChange={setFilters} options={filterOptions} />
 
-      <main className="auction-list">
+      <main className="grid gap-3">
         {loading && !allAuctions?.length ? (
-          <div className="loading">Pobieranie danych...</div>
+          <div className="py-16 text-center text-gray-400">Pobieranie danych...</div>
         ) : filteredAuctions.length === 0 ? (
-          <div className="empty">Brak ogłoszeń spełniających kryteria filtrowania.</div>
+          <div className="py-16 text-center text-gray-400">
+            Brak ogloszen spelniajacych kryteria filtrowania.
+          </div>
         ) : (
           filteredAuctions.map((auction) => (
             <AuctionCard
