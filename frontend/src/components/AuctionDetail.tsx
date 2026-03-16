@@ -153,21 +153,20 @@ export function AuctionDetail({ auction, onBack }: AuctionDetailProps) {
         {auction.imageUrls.length > 0 && (
           <div className="detail-section">
             <h3>Zdjecia</h3>
-            <div className="detail-images">
+            <ul className="detail-docs">
               {auction.imageUrls.map((url, idx) => (
-                <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
-                  <img
-                    src={url}
-                    alt={`Zdjecie ${idx + 1}`}
-                    className="detail-image"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </a>
+                <li key={idx}>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="detail-doc-link"
+                  >
+                    {decodeURIComponent(url.split("/").pop() || `Zdjecia ${idx + 1}`)}
+                  </a>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
 

@@ -10,6 +10,9 @@ import { parseGovplDetail } from "../parsers/govpl-detail.js";
 const GOVPL_DETAIL_WITH_TABLE = `
 <html>
 <body>
+<header>
+  <img src="/photo/a6631d28-8291-4474-b530-32864664800e" alt="Flaga Ukrainy" width="24" />
+</header>
 <article class="article-area__article">
   <div class="editor-content">
     <h2>Obwieszczenie o I licytacji ruchomości</h2>
@@ -53,13 +56,10 @@ const GOVPL_DETAIL_WITH_TABLE = `
 
     <h3>Warunki uczestnictwa</h3>
     <p>Wadium należy wpłacić na rachunek bankowy: 12 1234 5678 9012 3456 7890 1234 w terminie do dnia 24.03.2026 r.</p>
-
-    <h3>Dokumenty</h3>
-    <a href="/attachment/abc123.pdf">Obwieszczenie o licytacji.pdf</a>
-    <a href="/attachment/def456.pdf">Operat szacunkowy.pdf</a>
-
-    <img src="/photo/img123.jpg" alt="Samochód VW Golf" />
   </div>
+  <h3>Materiały</h3>
+  <a class="file-download" href="/attachment/abc123">Obwieszczenie<br/><span class="extension">obwieszczenie.pdf</span></a>
+  <a class="file-download" href="/attachment/def456">Zdjęcia ruchomości<br/><span class="extension">zdjecia.zip</span></a>
 </article>
 </body>
 </html>
@@ -137,15 +137,14 @@ describe("parseGovplDetail", () => {
       expect(result.items[1]!.deposit).toBe("320,00 zł");
     });
 
-    it("extracts document URLs", () => {
-      expect(result.documentUrls).toHaveLength(2);
-      expect(result.documentUrls[0]).toContain("abc123.pdf");
-      expect(result.documentUrls[1]).toContain("def456.pdf");
+    it("extracts document URLs (non-photo attachments)", () => {
+      expect(result.documentUrls).toHaveLength(1);
+      expect(result.documentUrls[0]).toContain("/attachment/abc123");
     });
 
-    it("extracts image URLs", () => {
+    it("extracts image URLs (photo attachments)", () => {
       expect(result.imageUrls).toHaveLength(1);
-      expect(result.imageUrls[0]).toContain("img123.jpg");
+      expect(result.imageUrls[0]).toContain("/attachment/def456");
     });
 
     it("has rawContent with the full text", () => {

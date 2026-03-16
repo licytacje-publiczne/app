@@ -32,38 +32,38 @@ export function parseGovplDetail(html: string, _pageUrl: string): GovplDetailRes
   // Extract items from tables
   const items = extractItemsFromTable($, article);
 
-  // Extract document/attachment URLs
+  // Extract document/attachment URLs — scoped to the article element only
   const documentUrls: string[] = [];
   const imageUrls: string[] = [];
 
-  $("a[href]").each((_, el) => {
+  // Gov.pl uses <a class="file-download"> for attachments inside the article.
+  // Classify based on the link's visible label text:
+  //   - "Zdjęcia", "zdjęcie", "foto" → imageUrls (photo archives/files)
+  //   - everything else → documentUrls
+  article.find('a[href*="/attachment/"], a[href*="/documents/"]').each((_, el) => {
     const href = $(el).attr("href") || "";
-    if (
-      href.match(/\.(pdf|docx?|xlsx?|odt)$/i) ||
-      href.includes("/attachment/") ||
-      href.includes("/documents/")
-    ) {
-      const fullUrl = href.startsWith("http") ? href : `https://www.gov.pl${href}`;
+    const fullUrl = href.startsWith("http") ? href : `https://www.gov.pl${href}`;
+    // Get the label text (first text before <br/> and <span>)
+    const labelText = $(el).clone().children().remove().end().text().trim().toLowerCase();
+
+    if (labelText.match(/zdjęci|foto|galeri/)) {
+      if (!imageUrls.includes(fullUrl)) {
+        imageUrls.push(fullUrl);
+      }
+    } else {
       if (!documentUrls.includes(fullUrl)) {
         documentUrls.push(fullUrl);
       }
     }
   });
 
-  $("img[src]").each((_, el) => {
-    const src = $(el).attr("src") || "";
-    if (
-      src.includes("/photo/") ||
-      src.includes("/attachment/") ||
-      src.match(/\.(jpg|jpeg|png|gif|webp)/i)
-    ) {
-      const fullUrl = src.startsWith("http") ? src : `https://www.gov.pl${src}`;
-      if (
-        !imageUrls.includes(fullUrl) &&
-        !fullUrl.includes("/icons/") &&
-        !fullUrl.includes("/img/")
-      ) {
-        imageUrls.push(fullUrl);
+  // Also pick up any remaining <a> links to documents (PDF etc.) within the article
+  article.find("a[href]").each((_, el) => {
+    const href = $(el).attr("href") || "";
+    if (href.match(/\.(pdf|docx?|xlsx?|odt)$/i)) {
+      const fullUrl = href.startsWith("http") ? href : `https://www.gov.pl${href}`;
+      if (!documentUrls.includes(fullUrl)) {
+        documentUrls.push(fullUrl);
       }
     }
   });
