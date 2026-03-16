@@ -18,7 +18,7 @@ GitHub Actions (cron/manual)
 ```
 
 - **Scraper** działa jako GitHub Action (codziennie o 6:00 UTC + wyzwalacz ręczny). Scrapuje strony listingowe i szczegółowe wszystkich 16 IAS, pobiera i parsuje PDF-y z platformy BIP. Wynik zapisuje do `data/auctions.json`.
-- **Frontend** to statyczna SPA hostowana na GitHub Pages. Pobiera `auctions.json`, przechowuje dane w IndexedDB (Dexie.js) do obsługi offline i cachowania. Oferuje filtrowanie po mieście, województwie, typie licytacji, wyszukiwanie pełnotekstowe oraz ukrywanie zakończonych licytacji.
+- **Frontend** to statyczna SPA hostowana na GitHub Pages. Pobiera `auctions.json`, przechowuje dane w IndexedDB (Dexie.js) do obsługi offline i cachowania. Oferuje filtrowanie po mieście, województwie, typie licytacji, wyszukiwanie pełnotekstowe oraz ukrywanie zakończonych i archiwalnych licytacji. Routing oparty na History API (`/ogloszenie/{id}`).
 
 ## Obsługiwane platformy
 
@@ -53,31 +53,34 @@ licytacje-publiczne/
 │   │   ├── platforms/
 │   │   │   ├── govpl.ts             # Scraper listingów gov.pl
 │   │   │   └── bip.ts              # Scraper listingów BIP
-│   │   └── parsers/
-│   │       ├── govpl-detail.ts      # Parser stron szczegółowych gov.pl
-│   │       ├── bip-detail.ts        # Parser stron szczegółowych BIP
-│   │       └── pdf-parser.ts        # Ekstrakcja danych z PDF
+│   │   ├── parsers/
+│   │   │   ├── govpl-detail.ts      # Parser stron szczegółowych gov.pl
+│   │   │   ├── bip-detail.ts        # Parser stron szczegółowych BIP
+│   │   │   └── pdf-parser.ts        # Ekstrakcja danych z PDF
+│   │   └── __tests__/               # Testy Vitest (89 testów)
 │   └── tsconfig.json
 ├── frontend/
 │   ├── src/
 │   │   ├── main.tsx                 # Entry point React
 │   │   ├── App.tsx                  # Główny komponent z filtrami
 │   │   ├── db.ts                    # Dexie.js (IndexedDB)
-│   │   ├── styles.css               # CSS z responsive design
+│   │   ├── styles.css               # Tailwind CSS v4 (@import "tailwindcss")
 │   │   ├── hooks/
-│   │   │   └── useAuctionData.ts    # Hook: fetch + cache w IndexedDB
+│   │   │   ├── useAuctionData.ts    # Hook: fetch + cache w IndexedDB
+│   │   │   └── useRouter.ts         # Custom router (History API)
 │   │   └── components/
 │   │       ├── Header.tsx
 │   │       ├── Filters.tsx
 │   │       ├── AuctionCard.tsx
 │   │       └── AuctionDetail.tsx
-│   ├── vite.config.ts               # base: /
+│   ├── vite.config.ts               # base: /, Tailwind plugin
 │   └── tsconfig.json
 ├── data/
 │   └── auctions.json                # Dane wygenerowane przez scraper
 └── .github/workflows/
+    ├── ci.yml                       # Lint, testy, typecheck (na PR i push)
     ├── scrape.yml                   # Cron: codzienne scrapowanie
-    └── deploy.yml                   # Deploy frontendu na GitHub Pages
+    └── deploy.yml                   # Deploy frontendu na GitHub Pages (z 404.html SPA fallback)
 ```
 
 ## Wymagania
@@ -111,9 +114,12 @@ cd scraper && npx tsx src/index.ts --ias krakow
 
 # Kombinacja filtrów
 cd scraper && npx tsx src/index.ts --platform govpl --ias kielce
+
+# Bez merge'owania z istniejącymi danymi (pełne nadpisanie)
+cd scraper && npx tsx src/index.ts --no-merge
 ```
 
-Wynik zapisywany jest do `data/auctions.json`.
+Scraper domyślnie łączy nowe dane z istniejącym `data/auctions.json` (incremental merge). Aukcje nieznalezione w bieżącym przebiegu są oznaczane jako archiwalne (`archived: true`). Flaga `--no-merge` wyłącza to zachowanie.
 
 ## Uruchomienie frontendu
 
@@ -138,6 +144,18 @@ cd scraper && npx tsc --noEmit
 cd frontend && npx tsc --noEmit
 ```
 
+## Testy
+
+```bash
+# Wszystkie testy (z katalogu głównego)
+npm test
+
+# Tylko testy scrapera
+npx vitest run scraper/
+```
+
+Projekt zawiera 89 testów Vitest pokrywających parsery (gov.pl, BIP, PDF), funkcje pomocnicze (daty, konta bankowe, klasyfikacja) oraz logikę merge'owania danych.
+
 ## Model danych
 
 Każda aukcja (`Auction`) zawiera:
@@ -159,6 +177,8 @@ Każda aukcja (`Auction`) zawiera:
 | `documentUrls`  | `string[]`         | URL-e dokumentów (PDF, DOCX)                    |
 | `imageUrls`     | `string[]`         | URL-e zdjęć                                     |
 | `rawContent`    | `string`           | Pełna treść do wyszukiwania (max 10 000 znaków) |
+| `lastSeenAt`    | `string`           | ISO timestamp ostatniego znalezienia na stronie  |
+| `archived`      | `boolean`          | `true` jeśli aukcja zniknęła ze strony źródłowej |
 
 Typy aukcji (`AuctionType`):
 
@@ -174,21 +194,27 @@ Typy aukcji (`AuctionType`):
 ### Scrape (`scrape.yml`)
 
 - Uruchamiany codziennie o 6:00 UTC + ręcznie
-- Scrapuje wszystkie 16 IAS
+- Scrapuje wszystkie 16 IAS, łączy z istniejącymi danymi (incremental merge)
 - Commituje `data/auctions.json` jeśli dane się zmieniły
 
 ### Deploy (`deploy.yml`)
 
-- Uruchamiany przy push na `main` (gdy zmienią się `frontend/`, `shared/` lub `data/`)
+- Uruchamiany przy push na `master` (gdy zmienią się `frontend/`, `shared/` lub `data/`)
 - Buduje frontend i kopiuje `data/auctions.json` do `dist/data/`
+- Generuje `404.html` (kopia `index.html`) dla SPA routing na GitHub Pages
 - Deployuje na GitHub Pages
+
+### CI (`ci.yml`)
+
+- Uruchamiany przy push i pull request
+- ESLint, Vitest (89 testów), typecheck (scraper + frontend)
 
 ## Znane ograniczenia
 
-- **Brak scrapowania przyrostowego** -- każde uruchomienie generuje pełny zestaw danych. Ogłoszenia usunięte ze stron źródłowych znikają z danych.
 - **Parsowanie PDF** -- ekstrakcja danych z PDF-ów jest heurystyczna. Dokumenty skanowane (obrazy) nie są obsługiwane (brak OCR).
 - **Daty z PDF** -- parser priorytetyzuje daty blisko słów kluczowych ("licytacja", "termin"), ale w nielicznych przypadkach może wybrać złą datę z tekstu.
-- **Zdjęcia** -- ładowane bezpośrednio z serwerów rządowych. Mogą być niedostępne lub blokowane przez CORS.
+- **Zdjęcia** -- ładowane bezpośrednio z serwerów rządowych. Mogą być niedostępne lub blokowane przez CORS. Zdjęcia z gov.pl renderowane jako linki do pobrania (mogą być archiwami ZIP).
+- **Nie wszystkie IAS zweryfikowane** -- end-to-end przetestowane Katowice (gov.pl) i Kraków (BIP). Inne mogą mieć drobne różnice w HTML.
 
 ## Licencja
 

@@ -22,8 +22,8 @@ This file provides context and instructions for AI coding agents working on this
 | --------- | --------------------------------------------------------------------------------- |
 | Shared    | TypeScript types                                                                  |
 | Scraper   | TypeScript, cheerio (HTML parsing), pdf-parse (PDF text extraction), tsx (runner) |
-| Frontend  | React 18, Vite 6, Dexie.js (IndexedDB), TypeScript                                |
-| CI/CD     | GitHub Actions (scrape.yml, deploy.yml)                                           |
+| Frontend  | React 18, Vite 6, Tailwind CSS v4, Dexie.js (IndexedDB), TypeScript               |
+| CI/CD     | GitHub Actions (ci.yml, scrape.yml, deploy.yml)                                    |
 | Hosting   | GitHub Pages (base URL: `/`)                                                      |
 
 ## Key conventions
@@ -65,6 +65,23 @@ The 16 IAS offices use two different website platforms with completely different
 - `bankAccount`: 26-digit Polish bank account number (no spaces in stored form)
 - `rawContent`: full text content capped at 10,000 chars, used for full-text search in frontend
 - `id`: SHA-256 hash of the source URL, truncated to 16 hex characters
+- `lastSeenAt`: ISO timestamp of when auction was last seen on the source website
+- `archived`: boolean, `true` if auction disappeared from source site (not found during scrape)
+
+### Incremental scraping (merge)
+
+The scraper loads existing `data/auctions.json` and merges fresh data with old. Per-IAS merge logic:
+- If an IAS was scraped and an auction was NOT found → mark `archived: true`
+- If an IAS was NOT scraped (partial scrape with `--ias`/`--platform`) → preserve old data unchanged
+- `--no-merge` flag skips merge and overwrites the file completely
+
+### URL routing
+
+Frontend uses History API (pushState/popstate) via a custom `useRouter` hook:
+- `/` — listing page with filters
+- `/ogloszenie/{id}` — detail view
+- `AuctionCard` renders as `<a href>` for accessibility and ctrl+click support
+- `404.html` (copy of `index.html`) provides SPA fallback on GitHub Pages
 
 ### Date parsing (`utils.ts: parsePolishDate`)
 
@@ -119,6 +136,15 @@ cd frontend && npm run build    # produces frontend/dist/
 cd frontend && npm run dev      # development server with HMR
 ```
 
+### Running tests
+
+```bash
+npm test                        # all 89 tests (from project root)
+npx vitest run scraper/         # scraper tests only
+```
+
+Tests cover: date parsing, bank account extraction, auction type classification, gov.pl detail parser, BIP detail parser, PDF parser, and merge logic.
+
 ## File-level guidance
 
 | File                                        | Notes                                                                                                 |
@@ -128,11 +154,12 @@ cd frontend && npm run dev      # development server with HMR
 | `scraper/src/utils.ts`                      | HTTP fetching (with User-Agent), date parsing, bank account extraction, auction type classification   |
 | `scraper/src/platforms/govpl.ts`            | Gov.pl listing scraper. Uses `?page=N&size=10` pagination                                             |
 | `scraper/src/platforms/bip.ts`              | BIP listing scraper. Uses `cur=N` pagination (Liferay)                                                |
-| `scraper/src/parsers/govpl-detail.ts`       | Parses gov.pl detail HTML. Items from `<table>`, images from `img` tags                               |
+| `scraper/src/parsers/govpl-detail.ts`       | Parses gov.pl detail HTML. Items from `<table>`, attachments classified by label (images vs documents) |
 | `scraper/src/parsers/bip-detail.ts`         | Parses BIP detail pages. Downloads PDFs, extracts images. Has `normalizeImageUrl()` for deduplication |
 | `scraper/src/parsers/pdf-parser.ts`         | PDF text extraction + heuristic parsing for items, dates, locations, bank accounts                    |
 | `frontend/src/db.ts`                        | Dexie IndexedDB schema with indexes                                                                   |
 | `frontend/src/hooks/useAuctionData.ts`      | Fetches JSON, uses `bulkPut` (not `bulkAdd`) to avoid duplicate key errors                            |
+| `frontend/src/hooks/useRouter.ts`           | Custom History API router (pushState/popstate), used for `/ogloszenie/{id}` routes                    |
 | `frontend/src/App.tsx`                      | Main component. Search is debounced (300ms). Sorting: soonest auction first                           |
 | `frontend/src/components/Filters.tsx`       | Filter UI: search, IAS, voivodeship, auction type, hide expired toggle                                |
 | `frontend/src/components/AuctionCard.tsx`   | List card with badges, first item preview                                                             |
@@ -150,8 +177,8 @@ cd frontend && npm run dev      # development server with HMR
 
 ## Known limitations that may need future work
 
-- **No incremental scraping**: Each run produces a full dataset. Old auctions disappear when removed from source sites. A merge strategy could preserve historical data.
 - **PDF item extraction is heuristic**: Works well for tabular PDFs but produces mixed-quality names for free-text announcements. Could be improved with better section boundary detection.
 - **No OCR**: Scanned/image PDFs produce empty text. Would need Tesseract or similar.
 - **Not all 16 IAS URLs are verified**: Only Katowice (gov.pl) and Kraków (BIP) have been tested end-to-end. Other BIP sites may have slightly different HTML structures.
 - **No debouncing on dropdown filters**: Only the search input is debounced. Dropdown changes apply immediately (which is fine for small datasets but could be optimized).
+- **Gov.pl photo attachments**: Often ZIP archives, rendered as download links (not `<img>` tags) in the frontend.
