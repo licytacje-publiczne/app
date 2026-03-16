@@ -50,7 +50,7 @@ export function AuctionCard({ auction, onClick }: AuctionCardProps) {
   return (
     <a
       href={`/ogloszenie/${auction.id}`}
-      className={`block no-underline rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 ${
+      className={`block overflow-hidden no-underline rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 ${
         isArchived
           ? "opacity-45 border-l-[3px] border-l-gray-400 bg-gray-50"
           : isExpired
