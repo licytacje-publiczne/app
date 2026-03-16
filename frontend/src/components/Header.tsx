@@ -5,12 +5,7 @@ interface HeaderProps {
   auctionCount: number;
 }
 
-export function Header({
-  lastUpdated,
-  loading,
-  onRefresh,
-  auctionCount,
-}: HeaderProps) {
+export function Header({ lastUpdated, loading, onRefresh, auctionCount }: HeaderProps) {
   const formattedDate = lastUpdated
     ? new Date(lastUpdated).toLocaleString("pl-PL", {
         day: "2-digit",
@@ -26,24 +21,15 @@ export function Header({
       <div className="header-left">
         <h1 className="header-title">Licytacje Publiczne</h1>
         <p className="header-subtitle">
-          Obwieszczenia o licytacjach skarbowych z 16 Izb Administracji
-          Skarbowej
+          Obwieszczenia o licytacjach skarbowych z 16 Izb Administracji Skarbowej
         </p>
       </div>
       <div className="header-right">
         <div className="header-meta">
-          {formattedDate && (
-            <span className="header-updated">
-              Dane z: {formattedDate}
-            </span>
-          )}
+          {formattedDate && <span className="header-updated">Dane z: {formattedDate}</span>}
           <span className="header-count">{auctionCount} ogloszen</span>
         </div>
-        <button
-          className="btn btn-refresh"
-          onClick={onRefresh}
-          disabled={loading}
-        >
+        <button className="btn btn-refresh" onClick={onRefresh} disabled={loading}>
           {loading ? "Pobieranie..." : "Odswiez dane"}
         </button>
       </div>

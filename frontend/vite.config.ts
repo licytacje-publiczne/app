@@ -14,11 +14,16 @@ export default defineConfig(({ mode }) => ({
     outDir: "dist",
   },
   esbuild: {
-    pure: mode === 'production'
-        ? ['console.log', 'console.info', 'console.debug', 'console.trace']
+    pure:
+      mode === "production"
+        ? ["console.log", "console.info", "console.debug", "console.trace"]
         : [],
   },
   server: {
-    allowedHosts: ['localhost-vite.mobulum.xyz','licytacje-publiczne.mobulum.com', 'licytacje-publiczne.github.io'],
+    allowedHosts: [
+      "localhost-vite.mobulum.xyz",
+      "licytacje-publiczne.mobulum.com",
+      "licytacje-publiczne.github.io",
+    ],
   },
-}))
+}));

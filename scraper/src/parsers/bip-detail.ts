@@ -1,12 +1,7 @@
 import * as cheerio from "cheerio";
 import type { Element } from "domhandler";
 import type { AuctionItem } from "../../../shared/types.js";
-import {
-  parsePolishDate,
-  extractBankAccount,
-  fetchBinary,
-  log,
-} from "../utils.js";
+import { parsePolishDate, extractBankAccount, fetchBinary, log } from "../utils.js";
 import { parsePdfContent } from "./pdf-parser.js";
 
 export interface BipDetailResult {
@@ -23,7 +18,7 @@ export interface BipDetailResult {
 export async function parseBipDetail(
   html: string,
   pageUrl: string,
-  origin: string
+  origin: string,
 ): Promise<BipDetailResult> {
   const $ = cheerio.load(html);
 
@@ -32,7 +27,10 @@ export async function parseBipDetail(
   const rawHtmlContent = articleContent.text().trim();
 
   // Extract source
-  const source = $(".bip-article-source").text().replace(/^Źródło:\s*/i, "").trim();
+  const source = $(".bip-article-source")
+    .text()
+    .replace(/^Źródło:\s*/i, "")
+    .trim();
 
   // Find document attachments
   const documentUrls: string[] = [];
@@ -41,10 +39,7 @@ export async function parseBipDetail(
   // BIP stores files under /documents/{groupId}/{folderId}/{filename}
   $(".bip-article-files a[href], .bip-article a[href]").each((_, el) => {
     const href = $(el).attr("href") || "";
-    if (
-      href.includes("/documents/") ||
-      href.match(/\.(pdf|docx?|xlsx?|odt)$/i)
-    ) {
+    if (href.includes("/documents/") || href.match(/\.(pdf|docx?|xlsx?|odt)$/i)) {
       const fullUrl = href.startsWith("http") ? href : `${origin}${href}`;
       if (!documentUrls.includes(fullUrl)) {
         documentUrls.push(fullUrl);
@@ -73,9 +68,7 @@ export async function parseBipDetail(
   let pdfLocation: string | null = null;
   let pdfDate: string | null = null;
 
-  const pdfUrls = documentUrls.filter(
-    (url) => url.endsWith(".pdf") || url.includes(".docx.pdf")
-  );
+  const pdfUrls = documentUrls.filter((url) => url.endsWith(".pdf") || url.includes(".docx.pdf"));
 
   for (const pdfUrl of pdfUrls) {
     try {
@@ -84,7 +77,7 @@ export async function parseBipDetail(
       const parsed = await parsePdfContent(pdfBuffer);
 
       if (parsed.text) {
-        pdfContent += parsed.text + "\n";
+        pdfContent += `${parsed.text}\n`;
       }
       if (parsed.items.length > 0 && pdfItems.length === 0) {
         pdfItems = parsed.items;
@@ -102,17 +95,13 @@ export async function parseBipDetail(
       // Extract image URLs from image-containing documents
       // (DOCX files may have images linked)
     } catch (err) {
-      log(
-        `  Failed to parse PDF ${pdfUrl}: ${err instanceof Error ? err.message : String(err)}`
-      );
+      log(`  Failed to parse PDF ${pdfUrl}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
   // Check for image documents (DOCX with photos)
-  const imageDocUrls = documentUrls.filter(
-    (url) =>
-      url.match(/zdj[eę]ci|photo|image|foto/i) &&
-      url.match(/\.docx?$/i)
+  const _imageDocUrls = documentUrls.filter(
+    (url) => url.match(/zdj[eę]ci|photo|image|foto/i) && url.match(/\.docx?$/i),
   );
   // We just keep these as document URLs - the user can download them
 
@@ -122,7 +111,10 @@ export async function parseBipDetail(
     if (href.includes("/image/") || href.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
       const fullUrl = href.startsWith("http") ? href : `${origin}${href}`;
       const normalized = normalizeImageUrl(fullUrl);
-      if (!imageUrls.some((u) => normalizeImageUrl(u) === normalized) && !fullUrl.includes("/icons/")) {
+      if (
+        !imageUrls.some((u) => normalizeImageUrl(u) === normalized) &&
+        !fullUrl.includes("/icons/")
+      ) {
         imageUrls.push(fullUrl);
       }
     }
@@ -137,7 +129,10 @@ export async function parseBipDetail(
     if (src.includes("/image/") || src.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
       const fullUrl = src.startsWith("http") ? src : `${origin}${src}`;
       const normalized = normalizeImageUrl(fullUrl);
-      if (!imageUrls.some((u) => normalizeImageUrl(u) === normalized) && !fullUrl.includes("/icons/")) {
+      if (
+        !imageUrls.some((u) => normalizeImageUrl(u) === normalized) &&
+        !fullUrl.includes("/icons/")
+      ) {
         imageUrls.push(fullUrl);
       }
     }
@@ -147,18 +142,11 @@ export async function parseBipDetail(
   const fullContent = [rawHtmlContent, pdfContent].filter(Boolean).join("\n");
 
   // Extract data from combined content
-  const auctionDate =
-    pdfDate || parsePolishDate(fullContent) || parsePolishDate(rawHtmlContent);
-  const location =
-    pdfLocation || extractLocationFromText(fullContent);
+  const auctionDate = pdfDate || parsePolishDate(fullContent) || parsePolishDate(rawHtmlContent);
+  const location = pdfLocation || extractLocationFromText(fullContent);
   const bankAccount =
-    pdfBankAccount ||
-    extractBankAccount(fullContent) ||
-    extractBankAccount(rawHtmlContent);
-  const items =
-    pdfItems.length > 0
-      ? pdfItems
-      : extractItemsFromHtml($, articleContent);
+    pdfBankAccount || extractBankAccount(fullContent) || extractBankAccount(rawHtmlContent);
+  const items = pdfItems.length > 0 ? pdfItems : extractItemsFromHtml($, articleContent);
 
   return {
     auctionDate,
@@ -216,7 +204,7 @@ function extractLocationFromText(text: string): string | null {
 
 function extractItemsFromHtml(
   $: cheerio.CheerioAPI,
-  article: cheerio.Cheerio<Element>
+  article: cheerio.Cheerio<Element>,
 ): AuctionItem[] {
   const items: AuctionItem[] = [];
 
@@ -224,20 +212,14 @@ function extractItemsFromHtml(
     const $table = $(table);
     const headers: string[] = [];
 
-    $table
-      .find("thead th, thead td, tr:first-child th, tr:first-child td")
-      .each((_, th) => {
-        headers.push($(th).text().trim().toLowerCase());
-      });
+    $table.find("thead th, thead td, tr:first-child th, tr:first-child td").each((_, th) => {
+      headers.push($(th).text().trim().toLowerCase());
+    });
 
     const hasRelevantHeaders =
       headers.some(
-        (h) =>
-          h.includes("określenie") ||
-          h.includes("ruchomości") ||
-          h.includes("nazwa")
-      ) ||
-      headers.some((h) => h.includes("wartość") || h.includes("szacunk"));
+        (h) => h.includes("określenie") || h.includes("ruchomości") || h.includes("nazwa"),
+      ) || headers.some((h) => h.includes("wartość") || h.includes("szacunk"));
 
     if (!hasRelevantHeaders && headers.length > 0) return;
 
@@ -246,20 +228,14 @@ function extractItemsFromHtml(
         h.includes("określenie") ||
         h.includes("ruchomości") ||
         h.includes("nazwa") ||
-        h.includes("opis")
+        h.includes("opis"),
     );
     const estimatedIdx = headers.findIndex(
-      (h) =>
-        h.includes("szacunk") ||
-        (h.includes("wartość") && !h.includes("wywołan"))
+      (h) => h.includes("szacunk") || (h.includes("wartość") && !h.includes("wywołan")),
     );
-    const startingIdx = headers.findIndex(
-      (h) => h.includes("wywołan") || h.includes("wywoławcz")
-    );
+    const startingIdx = headers.findIndex((h) => h.includes("wywołan") || h.includes("wywoławcz"));
     const depositIdx = headers.findIndex((h) => h.includes("wadium"));
-    const notesIdx = headers.findIndex(
-      (h) => h.includes("uwagi") || h.includes("informacj")
-    );
+    const notesIdx = headers.findIndex((h) => h.includes("uwagi") || h.includes("informacj"));
 
     const rows = $table.find("tbody tr, tr").toArray();
     const startRow = headers.length > 0 ? 1 : 0;
@@ -272,8 +248,7 @@ function extractItemsFromHtml(
 
       if (cells.length < 2) continue;
 
-      const effectiveNameIdx =
-        nameIdx >= 0 ? nameIdx : cells[0]?.match(/^\d+\.?$/) ? 1 : 0;
+      const effectiveNameIdx = nameIdx >= 0 ? nameIdx : cells[0]?.match(/^\d+\.?$/) ? 1 : 0;
 
       const name = cells[effectiveNameIdx] || "";
       if (!name || name.match(/^\d+\.?$/)) continue;

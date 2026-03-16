@@ -8,8 +8,7 @@ export const IAS_CONFIGS: IASConfig[] = [
     city: "Białystok",
     voivodeship: "podlaskie",
     platform: "govpl",
-    listingUrl:
-      "https://www.gov.pl/web/ias-bialystok/obwieszczenia-o-licytacjach",
+    listingUrl: "https://www.gov.pl/web/ias-bialystok/obwieszczenia-o-licytacjach",
   },
   {
     id: "katowice",
@@ -17,8 +16,7 @@ export const IAS_CONFIGS: IASConfig[] = [
     city: "Katowice",
     voivodeship: "śląskie",
     platform: "govpl",
-    listingUrl:
-      "https://www.gov.pl/web/ias-katowice/obwieszczenia-o-licytacjach",
+    listingUrl: "https://www.gov.pl/web/ias-katowice/obwieszczenia-o-licytacjach",
   },
   {
     id: "kielce",
@@ -26,8 +24,7 @@ export const IAS_CONFIGS: IASConfig[] = [
     city: "Kielce",
     voivodeship: "świętokrzyskie",
     platform: "govpl",
-    listingUrl:
-      "https://www.gov.pl/web/ias-kielce/obwieszczenia-o-licytacjach",
+    listingUrl: "https://www.gov.pl/web/ias-kielce/obwieszczenia-o-licytacjach",
   },
   {
     id: "lodz",
@@ -35,8 +32,7 @@ export const IAS_CONFIGS: IASConfig[] = [
     city: "Łódź",
     voivodeship: "łódzkie",
     platform: "govpl",
-    listingUrl:
-      "https://www.gov.pl/web/ias-lodz/obwieszczenia-o-licytacjach",
+    listingUrl: "https://www.gov.pl/web/ias-lodz/obwieszczenia-o-licytacjach",
   },
   {
     id: "rzeszow",
@@ -44,8 +40,7 @@ export const IAS_CONFIGS: IASConfig[] = [
     city: "Rzeszów",
     voivodeship: "podkarpackie",
     platform: "govpl",
-    listingUrl:
-      "https://www.gov.pl/web/ias-rzeszow/obwieszczenia-o-licytacjach",
+    listingUrl: "https://www.gov.pl/web/ias-rzeszow/obwieszczenia-o-licytacjach",
   },
   {
     id: "wroclaw",
@@ -53,8 +48,7 @@ export const IAS_CONFIGS: IASConfig[] = [
     city: "Wrocław",
     voivodeship: "dolnośląskie",
     platform: "govpl",
-    listingUrl:
-      "https://www.gov.pl/web/ias-wroclaw/obwieszczenia-o-licytacjach",
+    listingUrl: "https://www.gov.pl/web/ias-wroclaw/obwieszczenia-o-licytacjach",
   },
 
   // ===== old BIP platform (10 IAS) =====

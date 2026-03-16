@@ -86,8 +86,5 @@ export function toRoman(n: number): string {
 
 export function formatBankAccount(account: string): string {
   const clean = account.replace(/\s/g, "");
-  return clean.replace(
-    /(\d{2})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})/,
-    "$1 $2 $3 $4 $5 $6 $7"
-  );
+  return clean.replace(/(\d{2})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})/, "$1 $2 $3 $4 $5 $6 $7");
 }

@@ -38,9 +38,7 @@ export function Filters({ filters, onChange, options }: FiltersProps) {
             className="filter-search"
             placeholder="Szukaj w ogloszeniach..."
             value={filters.search}
-            onChange={(e) =>
-              onChange({ ...filters, search: e.target.value })
-            }
+            onChange={(e) => onChange({ ...filters, search: e.target.value })}
           />
         </div>
 
@@ -109,9 +107,7 @@ export function Filters({ filters, onChange, options }: FiltersProps) {
             <input
               type="checkbox"
               checked={filters.hideExpired}
-              onChange={(e) =>
-                onChange({ ...filters, hideExpired: e.target.checked })
-              }
+              onChange={(e) => onChange({ ...filters, hideExpired: e.target.checked })}
             />
             Ukryj przeterminowane
           </label>
@@ -122,9 +118,7 @@ export function Filters({ filters, onChange, options }: FiltersProps) {
             <input
               type="checkbox"
               checked={filters.hideArchived}
-              onChange={(e) =>
-                onChange({ ...filters, hideArchived: e.target.checked })
-              }
+              onChange={(e) => onChange({ ...filters, hideArchived: e.target.checked })}
             />
             Ukryj archiwalne
           </label>

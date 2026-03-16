@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ScrapeResult } from "../../../shared/types";
 import { db } from "../db";
 
-const DATA_URL = import.meta.env.BASE_URL + "data/auctions.json";
+const DATA_URL = `${import.meta.env.BASE_URL}data/auctions.json`;
 
 export function useAuctionData() {
   const [loading, setLoading] = useState(true);
@@ -42,13 +42,9 @@ export function useAuctionData() {
       if (count > 0) {
         const meta = await db.meta.get("lastUpdated");
         setLastUpdated(meta?.value ?? null);
-        setError(
-          `Nie udało się pobrać nowych danych. Używam danych z cache (${count} ogłoszeń).`
-        );
+        setError(`Nie udało się pobrać nowych danych. Używam danych z cache (${count} ogłoszeń).`);
       } else {
-        setError(
-          err instanceof Error ? err.message : "Nieznany błąd podczas pobierania danych"
-        );
+        setError(err instanceof Error ? err.message : "Nieznany błąd podczas pobierania danych");
       }
     } finally {
       setLoading(false);

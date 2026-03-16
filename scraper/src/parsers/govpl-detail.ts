@@ -14,10 +14,7 @@ export interface GovplDetailResult {
   rawContent: string;
 }
 
-export function parseGovplDetail(
-  html: string,
-  pageUrl: string
-): GovplDetailResult {
+export function parseGovplDetail(html: string, _pageUrl: string): GovplDetailResult {
   const $ = cheerio.load(html);
 
   const article = $(".editor-content, .article-area__article, article");
@@ -39,16 +36,14 @@ export function parseGovplDetail(
   const documentUrls: string[] = [];
   const imageUrls: string[] = [];
 
-  $('a[href]').each((_, el) => {
+  $("a[href]").each((_, el) => {
     const href = $(el).attr("href") || "";
     if (
       href.match(/\.(pdf|docx?|xlsx?|odt)$/i) ||
       href.includes("/attachment/") ||
       href.includes("/documents/")
     ) {
-      const fullUrl = href.startsWith("http")
-        ? href
-        : `https://www.gov.pl${href}`;
+      const fullUrl = href.startsWith("http") ? href : `https://www.gov.pl${href}`;
       if (!documentUrls.includes(fullUrl)) {
         documentUrls.push(fullUrl);
       }
@@ -62,9 +57,7 @@ export function parseGovplDetail(
       src.includes("/attachment/") ||
       src.match(/\.(jpg|jpeg|png|gif|webp)/i)
     ) {
-      const fullUrl = src.startsWith("http")
-        ? src
-        : `https://www.gov.pl${src}`;
+      const fullUrl = src.startsWith("http") ? src : `https://www.gov.pl${src}`;
       if (
         !imageUrls.includes(fullUrl) &&
         !fullUrl.includes("/icons/") &&
@@ -76,14 +69,7 @@ export function parseGovplDetail(
   });
 
   // Extract source from meta or breadcrumbs
-  const source =
-    $(".event-date")
-      .parent()
-      .find("p")
-      .not(".event-date")
-      .first()
-      .text()
-      .trim() || "";
+  const source = $(".event-date").parent().find("p").not(".event-date").first().text().trim() || "";
 
   return {
     auctionDate,
@@ -97,15 +83,29 @@ export function parseGovplDetail(
   };
 }
 
-function extractLocation(
-  $: cheerio.CheerioAPI,
-  rawContent: string
-): string | null {
-  // Look for "Miejsce" header followed by text
+function extractLocation($: cheerio.CheerioAPI, rawContent: string): string | null {
+  // First try structured content - look for h3 containing "miejsce" followed by a paragraph
+  // This is more reliable than raw text regex since we can isolate the paragraph content
+  let location: string | null = null;
+  $("h3").each((_, el) => {
+    const headerText = $(el).text().trim().toLowerCase();
+    if (headerText.includes("miejsce") && !location) {
+      const nextText = $(el).nextAll("p").first().text().trim();
+      if (nextText) {
+        // Try to extract just the address from the paragraph
+        const addressFromText = extractAddressFromText(nextText);
+        location = addressFromText || nextText.replace(/\s+/g, " ");
+      }
+    }
+  });
+
+  if (location) return location;
+
+  // Fall back to regex patterns on raw content
   const locationPatterns = [
-    /Miejsce\s*(?:licytacji)?[:\n]\s*(.+?)(?:\n|$)/i,
-    /(?:odbędzie się|pod adresem)[:\s]+(.+?)(?:\.|,\s*w\s+obecności)/i,
-    /(?:w siedzibie|siedzib[aę])\s+(.+?)(?:\.|$)/im,
+    /(?:w siedzibie|siedzib[aę])\s+(.+?)(?:\.(?:\s|$)|\n)/im,
+    /Miejsce\s*(?:licytacji)?[:\s]+(.+?)(?:\n|$)/i,
+    /(?:pod adresem)\s+(.+?)(?:\.(?:\s|$)|\n)/im,
   ];
 
   for (const pattern of locationPatterns) {
@@ -115,24 +115,36 @@ function extractLocation(
     }
   }
 
-  // Try structured content - look for h3 "Miejsce" followed by content
-  let location: string | null = null;
-  $("h3").each((_, el) => {
-    const headerText = $(el).text().trim().toLowerCase();
-    if (headerText.includes("miejsce") && !location) {
-      const nextText = $(el).nextAll("p").first().text().trim();
-      if (nextText) {
-        location = nextText.replace(/\s+/g, " ");
+  return location;
+}
+
+/**
+ * Tries to extract an address/location from a paragraph that may contain
+ * other text (dates, preamble). Looks for patterns like "w siedzibie ...",
+ * "pod adresem ...", or a postal code pattern.
+ */
+function extractAddressFromText(text: string): string | null {
+  const patterns = [
+    /(?:w siedzibie|siedzib[aę])\s+(.+)/im,
+    /(?:pod adresem)\s+(.+)/im,
+    /(\d{2}-\d{3}\s+\w+.*?(?:ul\.|ulica|al\.|plac).*)/im,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) {
+      // Trim trailing period and clean whitespace
+      const loc = match[1].trim().replace(/\s+/g, " ").replace(/\.$/, "").trim();
+      if (loc.length > 5 && loc.length < 300) {
+        return loc;
       }
     }
-  });
-
-  return location;
+  }
+  return null;
 }
 
 function extractItemsFromTable(
   $: cheerio.CheerioAPI,
-  article: cheerio.Cheerio<Element>
+  article: cheerio.Cheerio<Element>,
 ): AuctionItem[] {
   const items: AuctionItem[] = [];
 
@@ -147,7 +159,9 @@ function extractItemsFromTable(
 
     // Check if this looks like an items table
     const hasRelevantHeaders =
-      headers.some((h) => h.includes("określenie") || h.includes("ruchomości") || h.includes("nazwa")) ||
+      headers.some(
+        (h) => h.includes("określenie") || h.includes("ruchomości") || h.includes("nazwa"),
+      ) ||
       headers.some((h) => h.includes("wartość") || h.includes("szacunk")) ||
       headers.some((h) => h.includes("cena") || h.includes("wywołan"));
 
@@ -155,18 +169,18 @@ function extractItemsFromTable(
 
     // Map column indices
     const nameIdx = headers.findIndex(
-      (h) => h.includes("określenie") || h.includes("ruchomości") || h.includes("nazwa") || h.includes("opis")
+      (h) =>
+        h.includes("określenie") ||
+        h.includes("ruchomości") ||
+        h.includes("nazwa") ||
+        h.includes("opis"),
     );
     const estimatedIdx = headers.findIndex(
-      (h) => h.includes("szacunk") || (h.includes("wartość") && !h.includes("wywołan"))
+      (h) => h.includes("szacunk") || (h.includes("wartość") && !h.includes("wywołan")),
     );
-    const startingIdx = headers.findIndex(
-      (h) => h.includes("wywołan") || h.includes("wywoławcz")
-    );
+    const startingIdx = headers.findIndex((h) => h.includes("wywołan") || h.includes("wywoławcz"));
     const depositIdx = headers.findIndex((h) => h.includes("wadium"));
-    const notesIdx = headers.findIndex(
-      (h) => h.includes("uwagi") || h.includes("informacj")
-    );
+    const notesIdx = headers.findIndex((h) => h.includes("uwagi") || h.includes("informacj"));
 
     // Parse rows (skip header row)
     const rows = $table.find("tbody tr, tr").toArray();
@@ -200,7 +214,7 @@ function extractItemsFromTable(
   if (items.length === 0) {
     const rawText = article.text();
     const itemMatch = rawText.match(
-      /(?:Sprzedawan[ey]\s+ruchomości|Przedmiot\s+licytacji)[:\s]+([\s\S]*?)(?:Termin|Miejsce|Pozostałe|Warunki|Wadium)/i
+      /(?:Sprzedawan[ey]\s+ruchomości|Przedmiot\s+licytacji)[:\s]+([\s\S]*?)(?:Termin|Miejsce|Pozostałe|Warunki|Wadium)/i,
     );
     if (itemMatch?.[1]) {
       const text = itemMatch[1].trim();

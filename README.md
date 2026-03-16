@@ -24,15 +24,17 @@ GitHub Actions (cron/manual)
 
 Strony IAS działają na dwóch różnych platformach:
 
-| Platforma | Liczba IAS | Domena | Uwagi |
-|-----------|-----------|--------|-------|
-| **gov.pl** | 6 | `www.gov.pl/web/ias-{miasto}/...` | Treść w HTML, tabele z pozycjami |
-| **BIP (Liferay)** | 10 | `www.{województwo}.kas.gov.pl/...` | Treść głównie w załącznikach PDF |
+| Platforma         | Liczba IAS | Domena                             | Uwagi                            |
+| ----------------- | ---------- | ---------------------------------- | -------------------------------- |
+| **gov.pl**        | 6          | `www.gov.pl/web/ias-{miasto}/...`  | Treść w HTML, tabele z pozycjami |
+| **BIP (Liferay)** | 10         | `www.{województwo}.kas.gov.pl/...` | Treść głównie w załącznikach PDF |
 
 ### Gov.pl (6 IAS)
+
 Białystok, Katowice, Kielce, Łódź, Rzeszów, Wrocław
 
 ### BIP (10 IAS)
+
 Bydgoszcz, Gdańsk, Kraków, Lublin, Olsztyn, Opole, Poznań, Szczecin, Warszawa, Zielona Góra
 
 ## Struktura projektu
@@ -140,25 +142,26 @@ cd frontend && npx tsc --noEmit
 
 Każda aukcja (`Auction`) zawiera:
 
-| Pole | Typ | Opis |
-|------|-----|------|
-| `id` | `string` | SHA-256 hash URL-a (16 znaków) |
-| `sourceUrl` | `string` | Oryginalny URL ogłoszenia |
-| `ias` | `string` | Nazwa miasta IAS |
-| `voivodeship` | `string` | Województwo |
-| `platform` | `"bip" \| "govpl"` | Platforma źródłowa |
-| `title` | `string` | Tytuł (bez prefiksu numeru licytacji) |
-| `auctionNumber` | `number \| null` | Numer licytacji (I=1, II=2, III=3) |
-| `auctionType` | `AuctionType` | Klasyfikacja typu |
-| `auctionDate` | `string \| null` | Data/czas w formacie ISO |
-| `location` | `string \| null` | Miejsce licytacji |
-| `bankAccount` | `string \| null` | 26-cyfrowy numer konta do wpłaty wadium |
-| `items` | `AuctionItem[]` | Pozycje do sprzedaży |
-| `documentUrls` | `string[]` | URL-e dokumentów (PDF, DOCX) |
-| `imageUrls` | `string[]` | URL-e zdjęć |
-| `rawContent` | `string` | Pełna treść do wyszukiwania (max 10 000 znaków) |
+| Pole            | Typ                | Opis                                            |
+| --------------- | ------------------ | ----------------------------------------------- |
+| `id`            | `string`           | SHA-256 hash URL-a (16 znaków)                  |
+| `sourceUrl`     | `string`           | Oryginalny URL ogłoszenia                       |
+| `ias`           | `string`           | Nazwa miasta IAS                                |
+| `voivodeship`   | `string`           | Województwo                                     |
+| `platform`      | `"bip" \| "govpl"` | Platforma źródłowa                              |
+| `title`         | `string`           | Tytuł (bez prefiksu numeru licytacji)           |
+| `auctionNumber` | `number \| null`   | Numer licytacji (I=1, II=2, III=3)              |
+| `auctionType`   | `AuctionType`      | Klasyfikacja typu                               |
+| `auctionDate`   | `string \| null`   | Data/czas w formacie ISO                        |
+| `location`      | `string \| null`   | Miejsce licytacji                               |
+| `bankAccount`   | `string \| null`   | 26-cyfrowy numer konta do wpłaty wadium         |
+| `items`         | `AuctionItem[]`    | Pozycje do sprzedaży                            |
+| `documentUrls`  | `string[]`         | URL-e dokumentów (PDF, DOCX)                    |
+| `imageUrls`     | `string[]`         | URL-e zdjęć                                     |
+| `rawContent`    | `string`           | Pełna treść do wyszukiwania (max 10 000 znaków) |
 
 Typy aukcji (`AuctionType`):
+
 - `licytacja_ruchomosci` -- licytacja ruchomości (samochody, sprzęt, itp.)
 - `licytacja_nieruchomosci` -- licytacja nieruchomości
 - `sprzedaz_z_wolnej_reki` -- sprzedaż z wolnej ręki
@@ -169,11 +172,13 @@ Typy aukcji (`AuctionType`):
 ## GitHub Actions
 
 ### Scrape (`scrape.yml`)
+
 - Uruchamiany codziennie o 6:00 UTC + ręcznie
 - Scrapuje wszystkie 16 IAS
 - Commituje `data/auctions.json` jeśli dane się zmieniły
 
 ### Deploy (`deploy.yml`)
+
 - Uruchamiany przy push na `main` (gdy zmienią się `frontend/`, `shared/` lub `data/`)
 - Buduje frontend i kopiuje `data/auctions.json` do `dist/data/`
 - Deployuje na GitHub Pages

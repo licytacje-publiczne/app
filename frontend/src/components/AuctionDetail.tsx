@@ -38,7 +38,9 @@ export function AuctionDetail({ auction, onBack }: AuctionDetailProps) {
         Powrot do listy
       </button>
 
-      <div className={`detail-card ${isExpired ? "detail-card--expired" : ""} ${isArchived ? "detail-card--archived" : ""}`}>
+      <div
+        className={`detail-card ${isExpired ? "detail-card--expired" : ""} ${isArchived ? "detail-card--archived" : ""}`}
+      >
         {isArchived && (
           <div className="detail-archived-banner">
             To ogloszenie nie jest juz dostepne na stronie zrodlowej.
@@ -53,9 +55,7 @@ export function AuctionDetail({ auction, onBack }: AuctionDetailProps) {
                 {toRoman(auction.auctionNumber)} licytacja
               </span>
             )}
-            {isArchived && (
-              <span className="badge badge-archived badge-lg">Archiwalna</span>
-            )}
+            {isArchived && <span className="badge badge-archived badge-lg">Archiwalna</span>}
             {isExpired && !isArchived && (
               <span className="badge badge-expired badge-lg">Zakonczona</span>
             )}
@@ -119,9 +119,7 @@ export function AuctionDetail({ auction, onBack }: AuctionDetailProps) {
                       <td>{idx + 1}</td>
                       <td>{item.name}</td>
                       <td>{item.estimatedValue ?? "-"}</td>
-                      <td className="price-cell">
-                        {item.startingPrice ?? "-"}
-                      </td>
+                      <td className="price-cell">{item.startingPrice ?? "-"}</td>
                       <td>{item.deposit ?? "-"}</td>
                       <td>{item.notes ?? "-"}</td>
                     </tr>
@@ -157,12 +155,7 @@ export function AuctionDetail({ auction, onBack }: AuctionDetailProps) {
             <h3>Zdjecia</h3>
             <div className="detail-images">
               {auction.imageUrls.map((url, idx) => (
-                <a
-                  key={idx}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
                   <img
                     src={url}
                     alt={`Zdjecie ${idx + 1}`}

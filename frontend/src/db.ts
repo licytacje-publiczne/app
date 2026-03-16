@@ -1,9 +1,8 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { Auction } from "../../shared/types";
 
-export interface AuctionRecord extends Auction {
-  // Dexie needs the id field to be the primary key
-}
+// Dexie needs the id field to be the primary key
+export type AuctionRecord = Auction;
 
 export interface MetaRecord {
   key: string;
@@ -16,8 +15,7 @@ const db = new Dexie("LicytacjePubliczne") as Dexie & {
 };
 
 db.version(1).stores({
-  auctions:
-    "id, ias, voivodeship, platform, auctionType, auctionDate, auctionNumber, scrapedAt",
+  auctions: "id, ias, voivodeship, platform, auctionType, auctionDate, auctionNumber, scrapedAt",
   meta: "key",
 });
 

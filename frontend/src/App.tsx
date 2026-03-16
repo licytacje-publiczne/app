@@ -45,10 +45,8 @@ export function App() {
           return false;
         }
         if (filters.ias && a.ias !== filters.ias) return false;
-        if (filters.voivodeship && a.voivodeship !== filters.voivodeship)
-          return false;
-        if (filters.auctionType && a.auctionType !== filters.auctionType)
-          return false;
+        if (filters.voivodeship && a.voivodeship !== filters.voivodeship) return false;
+        if (filters.auctionType && a.auctionType !== filters.auctionType) return false;
         if (debouncedSearch) {
           const q = debouncedSearch.toLowerCase();
           return (
@@ -66,11 +64,19 @@ export function App() {
         if (!b.auctionDate) return -1;
         return a.auctionDate.localeCompare(b.auctionDate);
       });
-  }, [allAuctions, filters.hideExpired, filters.hideArchived, filters.ias, filters.voivodeship, filters.auctionType, debouncedSearch]);
+  }, [
+    allAuctions,
+    filters.hideExpired,
+    filters.hideArchived,
+    filters.ias,
+    filters.voivodeship,
+    filters.auctionType,
+    debouncedSearch,
+  ]);
 
   const selectedAuction = useMemo(
     () => filteredAuctions.find((a) => a.id === selectedId) ?? null,
-    [filteredAuctions, selectedId]
+    [filteredAuctions, selectedId],
   );
 
   // Unique values for filter dropdowns
@@ -111,19 +117,13 @@ export function App() {
 
       {error && <div className="error-banner">{error}</div>}
 
-      <Filters
-        filters={filters}
-        onChange={setFilters}
-        options={filterOptions}
-      />
+      <Filters filters={filters} onChange={setFilters} options={filterOptions} />
 
       <main className="auction-list">
         {loading && !allAuctions?.length ? (
           <div className="loading">Pobieranie danych...</div>
         ) : filteredAuctions.length === 0 ? (
-          <div className="empty">
-            Brak ogłoszeń spełniających kryteria filtrowania.
-          </div>
+          <div className="empty">Brak ogłoszeń spełniających kryteria filtrowania.</div>
         ) : (
           filteredAuctions.map((auction) => (
             <AuctionCard

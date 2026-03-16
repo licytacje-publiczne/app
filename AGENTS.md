@@ -18,17 +18,18 @@ This file provides context and instructions for AI coding agents working on this
 
 ## Tech stack
 
-| Component | Technologies                                                                     |
-|-----------|----------------------------------------------------------------------------------|
-| Shared | TypeScript types                                                                 |
-| Scraper | TypeScript, cheerio (HTML parsing), pdf-parse (PDF text extraction), tsx (runner) |
-| Frontend | React 18, Vite 6, Dexie.js (IndexedDB), TypeScript                               |
-| CI/CD | GitHub Actions (scrape.yml, deploy.yml)                                          |
-| Hosting | GitHub Pages (base URL: `/`)                                             |
+| Component | Technologies                                                                      |
+| --------- | --------------------------------------------------------------------------------- |
+| Shared    | TypeScript types                                                                  |
+| Scraper   | TypeScript, cheerio (HTML parsing), pdf-parse (PDF text extraction), tsx (runner) |
+| Frontend  | React 18, Vite 6, Dexie.js (IndexedDB), TypeScript                                |
+| CI/CD     | GitHub Actions (scrape.yml, deploy.yml)                                           |
+| Hosting   | GitHub Pages (base URL: `/`)                                                      |
 
 ## Key conventions
 
 ### TypeScript
+
 - `"type": "module"` in all packages (ESM)
 - Scraper imports use `.js` extensions (e.g., `from "./utils.js"`) as required by Node.js ESM resolution
 - Frontend imports do NOT use `.js` extensions (Vite handles resolution)
@@ -36,15 +37,18 @@ This file provides context and instructions for AI coding agents working on this
 - The `workspace:*` protocol does NOT work with npm -- use `"*"` for the shared dependency in package.json files
 
 ### Two scraping platforms
+
 The 16 IAS offices use two different website platforms with completely different HTML structures:
 
 **Platform A -- gov.pl (6 IAS):**
+
 - Listing: `article.article-area__article > div.art-prev > ul > li > a[href]`
 - Pagination: `?page=N&size=10`
 - Detail: `div.editor-content` with `<table>` for items
 - Content is in HTML
 
 **Platform B -- BIP/Liferay (10 IAS):**
+
 - Listing: `ul.article-list > table.taglib-search-iterator > tr.results-row > td > a`
 - Pagination: `.taglib-page-iterator` with `cur=N` parameter
 - Detail: `div.bip-article-content` with PDFs in `div.bip-article-files`
@@ -54,6 +58,7 @@ The 16 IAS offices use two different website platforms with completely different
 **When modifying parsers, always verify changes against live websites.** These are government sites and their HTML may change without notice.
 
 ### Data model
+
 - `auctionNumber`: extracted from title (Roman numeral I->1, II->2, III->3), removed from display title
 - `auctionType`: classified from title keywords into one of 6 types
 - `auctionDate`: ISO format string with time (`2026-03-25T11:00`), parsed from Polish date formats
@@ -62,30 +67,37 @@ The 16 IAS offices use two different website platforms with completely different
 - `id`: SHA-256 hash of the source URL, truncated to 16 hex characters
 
 ### Date parsing (`utils.ts: parsePolishDate`)
+
 Polish dates come in two formats: `24.04.2026` and `24 kwietnia 2026 r.`. The parser:
+
 1. First tries context-aware patterns (near keywords like "licytacja", "termin")
 2. Falls back to finding valid `dd.mm.yyyy` patterns (validates month 1-12, day 1-31)
 3. Looks for time (`godz. HH:MM`) within 100 characters after the date
-This is critical because PDF text often contains many number sequences that look like dates.
+   This is critical because PDF text often contains many number sequences that look like dates.
 
 ### Bank account extraction (`utils.ts: extractBankAccount`)
+
 Searches for 26-digit sequences near context keywords (`rachunek`, `konto`, `wadium`), then falls back to pattern matching. No IBAN checksum validation.
 
 ## Development workflow
 
 ### Install dependencies
+
 ```bash
 npm install  # from project root -- installs all workspaces
 ```
 
 ### Type checking
+
 ```bash
 cd scraper && npx tsc --noEmit
 cd frontend && npx tsc --noEmit
 ```
+
 Always run both checks after changes. The scraper and frontend have separate tsconfig files.
 
 ### Testing the scraper
+
 ```bash
 # Single IAS office (fast, recommended for testing)
 cd scraper && npx tsx src/index.ts --ias katowice     # gov.pl, ~2 min
@@ -97,9 +109,11 @@ cd scraper && npx tsx src/index.ts --platform govpl
 # Full scrape (all 16 IAS -- takes 15-30 minutes due to PDF downloads)
 cd scraper && npm run scrape
 ```
+
 Output goes to `data/auctions.json`.
 
 ### Building the frontend
+
 ```bash
 cd frontend && npm run build    # produces frontend/dist/
 cd frontend && npm run dev      # development server with HMR
@@ -107,23 +121,23 @@ cd frontend && npm run dev      # development server with HMR
 
 ## File-level guidance
 
-| File | Notes                                                                                                 |
-|------|-------------------------------------------------------------------------------------------------------|
-| `shared/types.ts` | All shared types + `toRoman()` and `formatBankAccount()` utilities                                    |
-| `scraper/src/config.ts` | URLs for all 16 IAS offices. If an IAS site changes URL, update here                                  |
-| `scraper/src/utils.ts` | HTTP fetching (with User-Agent), date parsing, bank account extraction, auction type classification   |
-| `scraper/src/platforms/govpl.ts` | Gov.pl listing scraper. Uses `?page=N&size=10` pagination                                             |
-| `scraper/src/platforms/bip.ts` | BIP listing scraper. Uses `cur=N` pagination (Liferay)                                                |
-| `scraper/src/parsers/govpl-detail.ts` | Parses gov.pl detail HTML. Items from `<table>`, images from `img` tags                               |
-| `scraper/src/parsers/bip-detail.ts` | Parses BIP detail pages. Downloads PDFs, extracts images. Has `normalizeImageUrl()` for deduplication |
-| `scraper/src/parsers/pdf-parser.ts` | PDF text extraction + heuristic parsing for items, dates, locations, bank accounts                    |
-| `frontend/src/db.ts` | Dexie IndexedDB schema with indexes                                                                   |
-| `frontend/src/hooks/useAuctionData.ts` | Fetches JSON, uses `bulkPut` (not `bulkAdd`) to avoid duplicate key errors                            |
-| `frontend/src/App.tsx` | Main component. Search is debounced (300ms). Sorting: soonest auction first                           |
-| `frontend/src/components/Filters.tsx` | Filter UI: search, IAS, voivodeship, auction type, hide expired toggle                                |
-| `frontend/src/components/AuctionCard.tsx` | List card with badges, first item preview                                                             |
+| File                                        | Notes                                                                                                 |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `shared/types.ts`                           | All shared types + `toRoman()` and `formatBankAccount()` utilities                                    |
+| `scraper/src/config.ts`                     | URLs for all 16 IAS offices. If an IAS site changes URL, update here                                  |
+| `scraper/src/utils.ts`                      | HTTP fetching (with User-Agent), date parsing, bank account extraction, auction type classification   |
+| `scraper/src/platforms/govpl.ts`            | Gov.pl listing scraper. Uses `?page=N&size=10` pagination                                             |
+| `scraper/src/platforms/bip.ts`              | BIP listing scraper. Uses `cur=N` pagination (Liferay)                                                |
+| `scraper/src/parsers/govpl-detail.ts`       | Parses gov.pl detail HTML. Items from `<table>`, images from `img` tags                               |
+| `scraper/src/parsers/bip-detail.ts`         | Parses BIP detail pages. Downloads PDFs, extracts images. Has `normalizeImageUrl()` for deduplication |
+| `scraper/src/parsers/pdf-parser.ts`         | PDF text extraction + heuristic parsing for items, dates, locations, bank accounts                    |
+| `frontend/src/db.ts`                        | Dexie IndexedDB schema with indexes                                                                   |
+| `frontend/src/hooks/useAuctionData.ts`      | Fetches JSON, uses `bulkPut` (not `bulkAdd`) to avoid duplicate key errors                            |
+| `frontend/src/App.tsx`                      | Main component. Search is debounced (300ms). Sorting: soonest auction first                           |
+| `frontend/src/components/Filters.tsx`       | Filter UI: search, IAS, voivodeship, auction type, hide expired toggle                                |
+| `frontend/src/components/AuctionCard.tsx`   | List card with badges, first item preview                                                             |
 | `frontend/src/components/AuctionDetail.tsx` | Full detail view with items table, documents, image gallery. Broken images auto-hidden via `onError`  |
-| `frontend/vite.config.ts` | Base path `/` for GitHub Pages                                                                        |
+| `frontend/vite.config.ts`                   | Base path `/` for GitHub Pages                                                                        |
 
 ## Common pitfalls
 

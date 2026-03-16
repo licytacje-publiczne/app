@@ -49,13 +49,9 @@ export function AuctionCard({ auction, onClick }: AuctionCardProps) {
       <div className="auction-card-header">
         <div className="auction-card-badges">
           {auction.auctionNumber && (
-            <span className="badge badge-number">
-              {toRoman(auction.auctionNumber)} licytacja
-            </span>
+            <span className="badge badge-number">{toRoman(auction.auctionNumber)} licytacja</span>
           )}
-          <span
-            className={`badge ${TYPE_COLORS[auction.auctionType] || "badge-gray"}`}
-          >
+          <span className={`badge ${TYPE_COLORS[auction.auctionType] || "badge-gray"}`}>
             {TYPE_LABELS[auction.auctionType] || auction.auctionType}
           </span>
           {isArchived && <span className="badge badge-archived">Archiwalna</span>}
@@ -75,22 +71,16 @@ export function AuctionCard({ auction, onClick }: AuctionCardProps) {
         <div className="auction-card-item">
           <span className="auction-card-item-name">{firstItem.name}</span>
           {firstItem.startingPrice && (
-            <span className="auction-card-price">
-              Cena wyw.: {firstItem.startingPrice}
-            </span>
+            <span className="auction-card-price">Cena wyw.: {firstItem.startingPrice}</span>
           )}
           {firstItem.estimatedValue && (
-            <span className="auction-card-estimated">
-              Wart. szac.: {firstItem.estimatedValue}
-            </span>
+            <span className="auction-card-estimated">Wart. szac.: {firstItem.estimatedValue}</span>
           )}
         </div>
       )}
 
       {auction.items.length > 1 && (
-        <div className="auction-card-more">
-          + {auction.items.length - 1} wiecej pozycji
-        </div>
+        <div className="auction-card-more">+ {auction.items.length - 1} wiecej pozycji</div>
       )}
     </article>
   );

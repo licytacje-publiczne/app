@@ -24,7 +24,7 @@ interface ListingEntry {
  * Pagination uses `cur=N` parameter, 20 items per page.
  */
 export async function scrapeBip(
-  config: IASConfig
+  config: IASConfig,
 ): Promise<{ auctions: Auction[]; errors: ScrapeError[] }> {
   const auctions: Auction[] = [];
   const errors: ScrapeError[] = [];
@@ -34,10 +34,7 @@ export async function scrapeBip(
   try {
     // Fetch first page
     const firstPageHtml = await fetchPage(config.listingUrl);
-    const { entries, totalPages, baseUrl } = parseListingPage(
-      firstPageHtml,
-      config
-    );
+    const { entries, totalPages, baseUrl } = parseListingPage(firstPageHtml, config);
 
     log(`[BIP] ${config.city}: found ${totalPages} pages, ${entries.length} entries on page 1`);
 
@@ -105,7 +102,7 @@ export async function scrapeBip(
 
 function parseListingPage(
   html: string,
-  config: IASConfig
+  config: IASConfig,
 ): { entries: ListingEntry[]; totalPages: number; baseUrl: string } {
   const $ = cheerio.load(html);
   const entries: ListingEntry[] = [];
@@ -141,7 +138,7 @@ function parseListingPage(
   // BIP uses taglib-page-iterator with page links like "Strona 2", "Strona 3"
   $(".taglib-page-iterator a, .page-selector a").each((_, el) => {
     const href = $(el).attr("href") || "";
-    const text = $(el).text().trim();
+    const _text = $(el).text().trim();
 
     // Look for page number in link text or cur= parameter
     const curMatch = href.match(/cur=(\d+)/);
@@ -164,11 +161,7 @@ function parseListingPage(
   return { entries, totalPages, baseUrl };
 }
 
-function buildPaginationUrl(
-  listingUrl: string,
-  baseUrl: string,
-  page: number
-): string {
+function buildPaginationUrl(listingUrl: string, baseUrl: string, page: number): string {
   // If we have a base URL from parsing, use its pattern
   if (baseUrl) {
     // Replace cur=N with the new page number
@@ -181,10 +174,7 @@ function buildPaginationUrl(
   return url.toString();
 }
 
-async function scrapeDetailPage(
-  entry: ListingEntry,
-  config: IASConfig
-): Promise<Auction> {
+async function scrapeDetailPage(entry: ListingEntry, config: IASConfig): Promise<Auction> {
   const html = await fetchPage(entry.detailUrl);
   const origin = new URL(config.listingUrl).origin;
   const detail = await parseBipDetail(html, entry.detailUrl, origin);

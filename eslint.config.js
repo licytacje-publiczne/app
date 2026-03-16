@@ -7,13 +7,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 export default tseslint.config(
   // Global ignores
   {
-    ignores: [
-      "**/dist/**",
-      "**/node_modules/**",
-      "data/**",
-      "**/*.js",
-      "**/*.mjs",
-    ],
+    ignores: ["**/dist/**", "**/node_modules/**", "data/**", "**/*.js", "**/*.mjs"],
   },
 
   // Base JS rules
@@ -87,10 +81,7 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     },
   },
 

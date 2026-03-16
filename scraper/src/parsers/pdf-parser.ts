@@ -10,9 +10,7 @@ export interface PdfParseResult {
   items: AuctionItem[];
 }
 
-export async function parsePdfContent(
-  buffer: Buffer
-): Promise<PdfParseResult> {
+export async function parsePdfContent(buffer: Buffer): Promise<PdfParseResult> {
   let text = "";
 
   try {
@@ -76,7 +74,6 @@ function extractItemsFromPdf(text: string): AuctionItem[] {
   // Price pattern: digits (with optional spaces) followed by comma and 2 decimal places
   // Supports single-digit prices like "5,00" as well as "18 000,00"
   const PRICE_RE = /(\d[\d\s]*,\d{2})\s*(?:zł\.?|PLN)?/g;
-  const PRICE_LINE_RE = /(\d[\d\s]*,\d{2})\s*(?:zł\.?|PLN)?/g;
 
   const lines = text.split("\n").map((l) => l.trim());
 
@@ -114,7 +111,7 @@ function extractItemsFromPdf(text: string): AuctionItem[] {
     }
 
     if (inItemsSection && line.length > 3) {
-      itemText += line + "\n";
+      itemText += `${line}\n`;
     }
   }
 
@@ -131,7 +128,7 @@ function extractItemsFromPdf(text: string): AuctionItem[] {
       let match;
       const tempPattern = /(\d[\d\s]*,\d{2})\s*(?:zł\.?|PLN)?/g;
       while ((match = tempPattern.exec(line)) !== null) {
-        linePs.push(match[1]!.replace(/\s/g, "") + " zł");
+        linePs.push(`${match[1]!.replace(/\s/g, "")} zł`);
       }
 
       if (linePs.length >= 2) {
@@ -161,7 +158,10 @@ function extractItemsFromPdf(text: string): AuctionItem[] {
         // New numbered item starts — flush accumulated text if any
         if (currentItemParts.length > 0) {
           // Previous item had no prices — save it as-is
-          const name = currentItemParts.join(" ").replace(/^\d+[.)]\s*/, "").trim();
+          const name = currentItemParts
+            .join(" ")
+            .replace(/^\d+[.)]\s*/, "")
+            .trim();
           if (name) {
             items.push({
               name: name.replace(/\s+/g, " "),
@@ -190,7 +190,11 @@ function extractItemsFromPdf(text: string): AuctionItem[] {
       }
     } else if (currentItemParts.length > 0 && items.length === 0) {
       // No items parsed yet — create one from accumulated text
-      const name = currentItemParts.join(" ").replace(/^\d+[.)]\s*/, "").replace(/\s+/g, " ").trim();
+      const name = currentItemParts
+        .join(" ")
+        .replace(/^\d+[.)]\s*/, "")
+        .replace(/\s+/g, " ")
+        .trim();
       if (name) {
         items.push({
           name: name.slice(0, 500),
@@ -207,7 +211,7 @@ function extractItemsFromPdf(text: string): AuctionItem[] {
       const allPrices: string[] = [];
       let m;
       while ((m = PRICE_RE.exec(itemText)) !== null) {
-        allPrices.push(m[1]!.replace(/\s/g, "") + " zł");
+        allPrices.push(`${m[1]!.replace(/\s/g, "")} zł`);
       }
 
       const cleanedName = itemText

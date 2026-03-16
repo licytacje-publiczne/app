@@ -6,7 +6,8 @@
   "scripts": {
     "scrape": "tsx src/index.ts",
     "scrape:govpl": "tsx src/index.ts --platform govpl",
-    "scrape:bip": "tsx src/index.ts --platform bip"
+    "scrape:bip": "tsx src/index.ts --platform bip",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "cheerio": "^1.0.0",

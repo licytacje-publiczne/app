@@ -101,7 +101,7 @@ export function extractAuctionNumber(title: string): number | null {
 
   // Try ordinal words: "Pierwsza licytacja", "Druga licytacja"
   const ordinalMatch = title.match(
-    /^(pierwsz[ay]|drug[aiy]|trzeci[ay]?|czwart[ay]|piąt[ay]|szóst[ay])\s+licytacj/i
+    /^(pierwsz[ay]|drug[aiy]|trzeci[ay]?|czwart[ay]|piąt[ay]|szóst[ay])\s+licytacj/i,
   );
   if (ordinalMatch) {
     const word = ordinalMatch[1].toLowerCase();
@@ -120,13 +120,10 @@ export function extractAuctionNumber(title: string): number | null {
  */
 export function cleanTitle(title: string): string {
   return title
-    .replace(
-      /^(I{1,3}V?I{0,3})\s+licytacj[aię]\s*/i,
-      ""
-    )
+    .replace(/^(I{1,3}V?I{0,3})\s+licytacj[aię]\s*/i, "")
     .replace(
       /^(pierwsz[ay]|drug[aiy]|trzeci[ay]?|czwart[ay]|piąt[ay]|szóst[ay])\s+licytacj[aię]\s*/i,
-      ""
+      "",
     )
     .replace(/^[-–—:]\s*/, "")
     .replace(/^\s+/, "");
@@ -216,7 +213,10 @@ export function parsePolishDate(text: string): string | null {
     const year = parseInt(match[3]!, 10);
     if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 2020 && year <= 2030) {
       // Look for time in nearby text (within 100 chars after date)
-      const afterDate = text.slice(match.index! + match[0].length, match.index! + match[0].length + 100);
+      const afterDate = text.slice(
+        match.index! + match[0].length,
+        match.index! + match[0].length + 100,
+      );
       const timeMatch = afterDate.match(/(?:o\s+)?godz\.?\s*(\d{1,2})[:.:](\d{2})/);
       const time = timeMatch ? `T${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}` : "T00:00";
       return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}${time}`;
@@ -225,16 +225,14 @@ export function parsePolishDate(text: string): string | null {
 
   // Format: "24 kwietnia 2026 r."
   const wordMatch = text.match(
-    /(\d{1,2})\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|października|listopada|grudnia)\s+(\d{4})/i
+    /(\d{1,2})\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|października|listopada|grudnia)\s+(\d{4})/i,
   );
   if (wordMatch) {
     const [, day, monthWord, year] = wordMatch;
     const month = MONTH_MAP[monthWord!.toLowerCase()];
     if (month) {
       const timeMatch = text.match(/godz\.?\s*(\d{1,2})[:.:](\d{2})/);
-      const time = timeMatch
-        ? `T${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}`
-        : "T00:00";
+      const time = timeMatch ? `T${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}` : "T00:00";
       return `${year}-${month}-${day!.padStart(2, "0")}${time}`;
     }
   }
@@ -293,7 +291,7 @@ export function extractBankAccount(text: string): string | null {
 
   // Fallback: match any 26-digit sequence (with optional spaces) preceded by optional PL/nr prefix
   const fallbackMatch = text.match(
-    /(?:PL\s*)?(\d{2}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4})/
+    /(?:PL\s*)?(\d{2}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4})/,
   );
   if (fallbackMatch) {
     const digits = fallbackMatch[1]!.replace(/\s/g, "");

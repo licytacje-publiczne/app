@@ -94,12 +94,8 @@ function mergeAuctions(
 
 async function main() {
   const args = process.argv.slice(2);
-  const platformFilter = args.includes("--platform")
-    ? args[args.indexOf("--platform") + 1]
-    : null;
-  const iasFilter = args.includes("--ias")
-    ? args[args.indexOf("--ias") + 1]
-    : null;
+  const platformFilter = args.includes("--platform") ? args[args.indexOf("--platform") + 1] : null;
+  const iasFilter = args.includes("--ias") ? args[args.indexOf("--ias") + 1] : null;
   const noMerge = args.includes("--no-merge");
 
   log("=== Licytacje Publiczne Scraper ===");
@@ -107,7 +103,12 @@ async function main() {
   const configs = IAS_CONFIGS.filter((c) => {
     if (platformFilter === "govpl" && c.platform !== "govpl") return false;
     if (platformFilter === "bip" && c.platform !== "bip") return false;
-    if (iasFilter && !c.id.includes(iasFilter) && !c.city.toLowerCase().includes(iasFilter.toLowerCase())) return false;
+    if (
+      iasFilter &&
+      !c.id.includes(iasFilter) &&
+      !c.city.toLowerCase().includes(iasFilter.toLowerCase())
+    )
+      return false;
     return true;
   });
 
@@ -131,10 +132,8 @@ async function main() {
 
     const results = await Promise.allSettled(
       batch.map((config) =>
-        config.platform === "govpl"
-          ? scrapeGovpl(config)
-          : scrapeBip(config)
-      )
+        config.platform === "govpl" ? scrapeGovpl(config) : scrapeBip(config),
+      ),
     );
 
     for (const result of results) {
@@ -165,12 +164,16 @@ async function main() {
       finalAuctions = freshAuctions;
       log(`\nNo existing data to merge — using ${freshAuctions.length} freshly scraped auctions`);
     } else {
-      log(`\nMerging ${freshAuctions.length} fresh auctions with ${existingAuctions.length} existing...`);
+      log(
+        `\nMerging ${freshAuctions.length} fresh auctions with ${existingAuctions.length} existing...`,
+      );
       finalAuctions = mergeAuctions(existingAuctions, freshAuctions, scrapedIasIds);
 
       const archivedCount = finalAuctions.filter((a) => a.archived).length;
       const activeCount = finalAuctions.length - archivedCount;
-      log(`  Result: ${finalAuctions.length} total (${activeCount} active, ${archivedCount} archived)`);
+      log(
+        `  Result: ${finalAuctions.length} total (${activeCount} active, ${archivedCount} archived)`,
+      );
     }
   }
 

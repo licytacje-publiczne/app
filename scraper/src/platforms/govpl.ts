@@ -25,7 +25,7 @@ interface ListingEntry {
  * URL pattern: https://www.gov.pl/web/ias-{city}/obwieszczenia-o-licytacjach?page=N&size=10
  */
 export async function scrapeGovpl(
-  config: IASConfig
+  config: IASConfig,
 ): Promise<{ auctions: Auction[]; errors: ScrapeError[] }> {
   const auctions: Auction[] = [];
   const errors: ScrapeError[] = [];
@@ -102,7 +102,7 @@ export async function scrapeGovpl(
 
 function parseListingPage(
   html: string,
-  config: IASConfig
+  _config: IASConfig,
 ): { entries: ListingEntry[]; totalPages: number } {
   const $ = cheerio.load(html);
   const entries: ListingEntry[] = [];
@@ -124,9 +124,7 @@ function parseListingPage(
 
     if (!title) return;
 
-    const detailUrl = href.startsWith("http")
-      ? href
-      : `https://www.gov.pl${href}`;
+    const detailUrl = href.startsWith("http") ? href : `https://www.gov.pl${href}`;
 
     entries.push({
       title,
@@ -162,10 +160,7 @@ function parseListingPage(
   return { entries, totalPages };
 }
 
-async function scrapeDetailPage(
-  entry: ListingEntry,
-  config: IASConfig
-): Promise<Auction> {
+async function scrapeDetailPage(entry: ListingEntry, config: IASConfig): Promise<Auction> {
   const html = await fetchPage(entry.detailUrl);
   const detail = parseGovplDetail(html, entry.detailUrl);
 
