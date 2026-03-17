@@ -108,28 +108,49 @@ function parseListingPage(
   const entries: ListingEntry[] = [];
   const origin = new URL(config.listingUrl).origin;
 
-  // BIP Liferay listing structure:
-  // ul.article-list > table.taglib-search-iterator > tr.results-row > td > a
-  // Each row has a link with full title text
-  $("table.taglib-search-iterator tr.results-row").each((_, el) => {
-    const $row = $(el);
-    const link = $row.find("td a").first();
-    const title = link.text().trim();
-    let href = link.attr("href") || "";
+  // BIP Liferay has two listing variants:
+  // Variant A (Kraków): table.taglib-search-iterator > tr.results-row > td > a
+  // Variant B (other BIP sites): ul.article-list > li.article-item > ... > h2.article-title > a
 
-    if (!title || !href) return;
+  const tableRows = $("table.taglib-search-iterator tr.results-row");
+  const articleItems = $("ul.article-list li.article-item");
 
-    // Clean up the URL - remove redirect parameter
-    if (href.includes("?redirect=")) {
-      href = href.split("?redirect=")[0]!;
-    }
+  if (tableRows.length > 0) {
+    // Variant A: table-based listing (e.g., Kraków)
+    tableRows.each((_, el) => {
+      const $row = $(el);
+      const link = $row.find("td a").first();
+      const title = link.text().trim();
+      let href = link.attr("href") || "";
 
-    // Make absolute
-    const detailUrl = href.startsWith("http") ? href : `${origin}${href}`;
+      if (!title || !href) return;
 
-    // BIP listing doesn't have a separate source field
-    entries.push({ title, source: "", detailUrl });
-  });
+      if (href.includes("?redirect=")) {
+        href = href.split("?redirect=")[0]!;
+      }
+
+      const detailUrl = href.startsWith("http") ? href : `${origin}${href}`;
+      entries.push({ title, source: "", detailUrl });
+    });
+  } else if (articleItems.length > 0) {
+    // Variant B: div/ul/li-based listing (e.g., Bydgoszcz, Gdańsk, Warszawa, etc.)
+    articleItems.each((_, el) => {
+      const $item = $(el);
+      const link = $item.find("h2.article-title a").first();
+      const title = link.text().trim();
+      let href = link.attr("href") || "";
+
+      if (!title || !href) return;
+
+      if (href.includes("?redirect=")) {
+        href = href.split("?redirect=")[0]!;
+      }
+
+      const detailUrl = href.startsWith("http") ? href : `${origin}${href}`;
+      const source = $item.find("span.articleSourceValue").text().trim();
+      entries.push({ title, source, detailUrl });
+    });
+  }
 
   // Determine total pages from pagination
   let totalPages = 1;
