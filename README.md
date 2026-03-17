@@ -160,23 +160,23 @@ Projekt zawiera 89 testów Vitest pokrywających parsery (gov.pl, BIP, PDF), fun
 
 Każda aukcja (`Auction`) zawiera:
 
-| Pole            | Typ                | Opis                                            |
-| --------------- | ------------------ | ----------------------------------------------- |
-| `id`            | `string`           | SHA-256 hash URL-a (16 znaków)                  |
-| `sourceUrl`     | `string`           | Oryginalny URL ogłoszenia                       |
-| `ias`           | `string`           | Nazwa miasta IAS                                |
-| `voivodeship`   | `string`           | Województwo                                     |
-| `platform`      | `"bip" \| "govpl"` | Platforma źródłowa                              |
-| `title`         | `string`           | Tytuł (bez prefiksu numeru licytacji)           |
-| `auctionNumber` | `number \| null`   | Numer licytacji (I=1, II=2, III=3)              |
-| `auctionType`   | `AuctionType`      | Klasyfikacja typu                               |
-| `auctionDate`   | `string \| null`   | Data/czas w formacie ISO                        |
-| `location`      | `string \| null`   | Miejsce licytacji                               |
-| `bankAccount`   | `string \| null`   | 26-cyfrowy numer konta do wpłaty wadium         |
-| `items`         | `AuctionItem[]`    | Pozycje do sprzedaży                            |
-| `documentUrls`  | `string[]`         | URL-e dokumentów (PDF, DOCX)                    |
-| `imageUrls`     | `string[]`         | URL-e zdjęć                                     |
-| `rawContent`    | `string`           | Pełna treść do wyszukiwania (max 10 000 znaków) |
+| Pole            | Typ                | Opis                                             |
+| --------------- | ------------------ | ------------------------------------------------ |
+| `id`            | `string`           | SHA-256 hash URL-a (16 znaków)                   |
+| `sourceUrl`     | `string`           | Oryginalny URL ogłoszenia                        |
+| `ias`           | `string`           | Nazwa miasta IAS                                 |
+| `voivodeship`   | `string`           | Województwo                                      |
+| `platform`      | `"bip" \| "govpl"` | Platforma źródłowa                               |
+| `title`         | `string`           | Tytuł (bez prefiksu numeru licytacji)            |
+| `auctionNumber` | `number \| null`   | Numer licytacji (I=1, II=2, III=3)               |
+| `auctionType`   | `AuctionType`      | Klasyfikacja typu                                |
+| `auctionDate`   | `string \| null`   | Data/czas w formacie ISO                         |
+| `location`      | `string \| null`   | Miejsce licytacji                                |
+| `bankAccount`   | `string \| null`   | 26-cyfrowy numer konta do wpłaty wadium          |
+| `items`         | `AuctionItem[]`    | Pozycje do sprzedaży                             |
+| `documentUrls`  | `string[]`         | URL-e dokumentów (PDF, DOCX)                     |
+| `imageUrls`     | `string[]`         | URL-e zdjęć                                      |
+| `rawContent`    | `string`           | Pełna treść do wyszukiwania (max 10 000 znaków)  |
 | `lastSeenAt`    | `string`           | ISO timestamp ostatniego znalezienia na stronie  |
 | `archived`      | `boolean`          | `true` jeśli aukcja zniknęła ze strony źródłowej |
 

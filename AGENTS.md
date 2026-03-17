@@ -23,7 +23,7 @@ This file provides context and instructions for AI coding agents working on this
 | Shared    | TypeScript types                                                                  |
 | Scraper   | TypeScript, cheerio (HTML parsing), pdf-parse (PDF text extraction), tsx (runner) |
 | Frontend  | React 18, Vite 6, Tailwind CSS v4, Dexie.js (IndexedDB), TypeScript               |
-| CI/CD     | GitHub Actions (ci.yml, scrape.yml, deploy.yml)                                    |
+| CI/CD     | GitHub Actions (ci.yml, scrape.yml, deploy.yml)                                   |
 | Hosting   | GitHub Pages (base URL: `/`)                                                      |
 
 ## Key conventions
@@ -71,6 +71,7 @@ The 16 IAS offices use two different website platforms with completely different
 ### Incremental scraping (merge)
 
 The scraper loads existing `data/auctions.json` and merges fresh data with old. Per-IAS merge logic:
+
 - If an IAS was scraped and an auction was NOT found → mark `archived: true`
 - If an IAS was NOT scraped (partial scrape with `--ias`/`--platform`) → preserve old data unchanged
 - `--no-merge` flag skips merge and overwrites the file completely
@@ -78,6 +79,7 @@ The scraper loads existing `data/auctions.json` and merges fresh data with old. 
 ### URL routing
 
 Frontend uses History API (pushState/popstate) via a custom `useRouter` hook:
+
 - `/` — listing page with filters
 - `/ogloszenie/{id}` — detail view
 - `AuctionCard` renders as `<a href>` for accessibility and ctrl+click support
@@ -147,24 +149,24 @@ Tests cover: date parsing, bank account extraction, auction type classification,
 
 ## File-level guidance
 
-| File                                        | Notes                                                                                                 |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `shared/types.ts`                           | All shared types + `toRoman()` and `formatBankAccount()` utilities                                    |
-| `scraper/src/config.ts`                     | URLs for all 16 IAS offices. If an IAS site changes URL, update here                                  |
-| `scraper/src/utils.ts`                      | HTTP fetching (with User-Agent), date parsing, bank account extraction, auction type classification   |
-| `scraper/src/platforms/govpl.ts`            | Gov.pl listing scraper. Uses `?page=N&size=10` pagination                                             |
-| `scraper/src/platforms/bip.ts`              | BIP listing scraper. Uses `cur=N` pagination (Liferay)                                                |
+| File                                        | Notes                                                                                                  |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `shared/types.ts`                           | All shared types + `toRoman()` and `formatBankAccount()` utilities                                     |
+| `scraper/src/config.ts`                     | URLs for all 16 IAS offices. If an IAS site changes URL, update here                                   |
+| `scraper/src/utils.ts`                      | HTTP fetching (with User-Agent), date parsing, bank account extraction, auction type classification    |
+| `scraper/src/platforms/govpl.ts`            | Gov.pl listing scraper. Uses `?page=N&size=10` pagination                                              |
+| `scraper/src/platforms/bip.ts`              | BIP listing scraper. Uses `cur=N` pagination (Liferay)                                                 |
 | `scraper/src/parsers/govpl-detail.ts`       | Parses gov.pl detail HTML. Items from `<table>`, attachments classified by label (images vs documents) |
-| `scraper/src/parsers/bip-detail.ts`         | Parses BIP detail pages. Downloads PDFs, extracts images. Has `normalizeImageUrl()` for deduplication |
-| `scraper/src/parsers/pdf-parser.ts`         | PDF text extraction + heuristic parsing for items, dates, locations, bank accounts                    |
-| `frontend/src/db.ts`                        | Dexie IndexedDB schema with indexes                                                                   |
-| `frontend/src/hooks/useAuctionData.ts`      | Fetches JSON, uses `bulkPut` (not `bulkAdd`) to avoid duplicate key errors                            |
-| `frontend/src/hooks/useRouter.ts`           | Custom History API router (pushState/popstate), used for `/ogloszenie/{id}` routes                    |
-| `frontend/src/App.tsx`                      | Main component. Search is debounced (300ms). Sorting: soonest auction first                           |
-| `frontend/src/components/Filters.tsx`       | Filter UI: search, IAS, voivodeship, auction type, hide expired toggle                                |
-| `frontend/src/components/AuctionCard.tsx`   | List card with badges, first item preview                                                             |
-| `frontend/src/components/AuctionDetail.tsx` | Full detail view with items table, documents, image gallery. Broken images auto-hidden via `onError`  |
-| `frontend/vite.config.ts`                   | Base path `/` for GitHub Pages                                                                        |
+| `scraper/src/parsers/bip-detail.ts`         | Parses BIP detail pages. Downloads PDFs, extracts images. Has `normalizeImageUrl()` for deduplication  |
+| `scraper/src/parsers/pdf-parser.ts`         | PDF text extraction + heuristic parsing for items, dates, locations, bank accounts                     |
+| `frontend/src/db.ts`                        | Dexie IndexedDB schema with indexes                                                                    |
+| `frontend/src/hooks/useAuctionData.ts`      | Fetches JSON, uses `bulkPut` (not `bulkAdd`) to avoid duplicate key errors                             |
+| `frontend/src/hooks/useRouter.ts`           | Custom History API router (pushState/popstate), used for `/ogloszenie/{id}` routes                     |
+| `frontend/src/App.tsx`                      | Main component. Search is debounced (300ms). Sorting: soonest auction first                            |
+| `frontend/src/components/Filters.tsx`       | Filter UI: search, IAS, voivodeship, auction type, hide expired toggle                                 |
+| `frontend/src/components/AuctionCard.tsx`   | List card with badges, first item preview                                                              |
+| `frontend/src/components/AuctionDetail.tsx` | Full detail view with items table, documents, image gallery. Broken images auto-hidden via `onError`   |
+| `frontend/vite.config.ts`                   | Base path `/` for GitHub Pages                                                                         |
 
 ## Common pitfalls
 
