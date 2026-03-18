@@ -70,11 +70,27 @@ export async function parseBipDetail(
 
   const pdfUrls = documentUrls.filter((url) => url.endsWith(".pdf") || url.includes(".docx.pdf"));
 
-  for (const pdfUrl of pdfUrls) {
-    try {
-      log(`  Downloading PDF: ${pdfUrl.split("/").pop()}`);
-      const pdfBuffer = await fetchBinary(pdfUrl);
-      const parsed = await parsePdfContent(pdfBuffer);
+  // Download and parse all PDFs in parallel for better performance
+  if (pdfUrls.length > 0) {
+    log(`  Downloading ${pdfUrls.length} PDF(s) in parallel...`);
+    const pdfResults = await Promise.allSettled(
+      pdfUrls.map(async (pdfUrl) => {
+        log(`  Downloading PDF: ${pdfUrl.split("/").pop()}`);
+        const pdfBuffer = await fetchBinary(pdfUrl);
+        return parsePdfContent(pdfBuffer);
+      }),
+    );
+
+    // Process results sequentially to preserve "first wins" logic
+    for (let i = 0; i < pdfResults.length; i++) {
+      const result = pdfResults[i]!;
+      if (result.status === "rejected") {
+        log(
+          `  Failed to parse PDF ${pdfUrls[i]}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`,
+        );
+        continue;
+      }
+      const parsed = result.value;
 
       if (parsed.text) {
         pdfContent += `${parsed.text}\n`;
@@ -91,11 +107,6 @@ export async function parseBipDetail(
       if (parsed.auctionDate && !pdfDate) {
         pdfDate = parsed.auctionDate;
       }
-
-      // Extract image URLs from image-containing documents
-      // (DOCX files may have images linked)
-    } catch (err) {
-      log(`  Failed to parse PDF ${pdfUrl}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

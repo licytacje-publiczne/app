@@ -144,7 +144,7 @@ export const IAS_CONFIGS: IASConfig[] = [
   },
 ];
 
-export const SCRAPE_CONCURRENCY = 3;
-export const REQUEST_DELAY_MS = 500;
+export const SCRAPE_CONCURRENCY = 5;
+export const REQUEST_DELAY_MS = 300;
 export const REQUEST_TIMEOUT_MS = 30_000;
 export const MAX_PAGES_PER_IAS = 50;
