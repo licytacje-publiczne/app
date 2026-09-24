@@ -118,7 +118,9 @@ function parseListingPage(
     const title = $link.text().trim();
     if (!title) return;
 
-    const container = $link.closest("li, article, div.art-prev > ul > li, div.art-prev > div, div.event-container");
+    const container = $link.closest(
+      "li, article, div.art-prev > ul > li, div.art-prev > div, div.event-container",
+    );
     const parentContainer = container.length > 0 ? container : $link.parent().parent();
 
     const date = parentContainer.find(".date").first().text().trim();
