@@ -145,9 +145,7 @@ describe("mergeAuctions", () => {
   });
 
   it("correctly archives when scraped identifiers include lowercase technical IDs", () => {
-    const existing = [
-      makeAuction({ id: "bmw123", ias: "Poznań", title: "Stare BMW" }),
-    ];
+    const existing = [makeAuction({ id: "bmw123", ias: "Poznań", title: "Stare BMW" })];
     const fresh: Auction[] = [];
 
     // scrapedIasIdentifiers contains "poznan" and "Poznań"

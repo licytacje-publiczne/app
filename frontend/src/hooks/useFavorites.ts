@@ -48,10 +48,7 @@ export function useFavorites() {
     });
   }, []);
 
-  const isFavorite = useCallback(
-    (id: string) => favorites.has(id),
-    [favorites],
-  );
+  const isFavorite = useCallback((id: string) => favorites.has(id), [favorites]);
 
   return {
     favorites,

@@ -32,19 +32,17 @@ export function mergeAuctions(
   }
 
   const isIasScraped = (ias: string) => {
-    return (
-      scrapedIasIdentifiers.has(ias) ||
-      normalizedScraped.has(ias.toLowerCase())
-    );
+    return scrapedIasIdentifiers.has(ias) || normalizedScraped.has(ias.toLowerCase());
   };
 
   const merged = new Map<string, Auction>();
 
   // First: process existing auctions
   for (const existing of existingAuctions) {
-    if (newById.has(existing.id)) {
+    const updated = newById.get(existing.id);
+    if (updated) {
       // Auction still exists on source — use new version (already has lastSeenAt set)
-      merged.set(existing.id, newById.get(existing.id)!);
+      merged.set(existing.id, updated);
     } else if (isIasScraped(existing.ias)) {
       // Auction's IAS was scraped but auction wasn't found — mark as archived
       if (!existing.archived) {

@@ -51,8 +51,18 @@ export function Header({
               : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
           }`}
         >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          <svg
+            className="size-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+            />
           </svg>
           Wszystkie ogłoszenia
         </button>
@@ -83,7 +93,9 @@ export function Header({
           {favoriteCount > 0 && (
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                activeTab === "favorites" ? "bg-amber-200 text-amber-900" : "bg-gray-200 text-gray-700"
+                activeTab === "favorites"
+                  ? "bg-amber-200 text-amber-900"
+                  : "bg-gray-200 text-gray-700"
               }`}
             >
               {favoriteCount}

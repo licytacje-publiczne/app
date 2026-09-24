@@ -11,7 +11,7 @@ function parseLocation(): RouterState {
   const path = window.location.pathname;
   const match = path.match(/^\/ogloszenie\/([a-f0-9]+)$/);
   return {
-    auctionId: match ? match[1]! : null,
+    auctionId: match?.[1] ?? null,
     search: window.location.search,
   };
 }
@@ -20,10 +20,12 @@ export function useRouter() {
   const [state, setState] = useState<RouterState>(parseLocation);
   const lastListSearchRef = useRef<string>(window.location.search);
 
-  // Update lastListSearchRef whenever we are on the listing page
-  if (!state.auctionId && state.search !== lastListSearchRef.current) {
-    lastListSearchRef.current = state.search;
-  }
+  useEffect(() => {
+    // Update lastListSearchRef whenever we are on the listing page
+    if (!state.auctionId) {
+      lastListSearchRef.current = state.search;
+    }
+  }, [state.auctionId, state.search]);
 
   useEffect(() => {
     const onPopState = () => setState(parseLocation());

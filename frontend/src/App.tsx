@@ -32,7 +32,11 @@ function parseUrlParams(searchStr: string): {
   };
 }
 
-function buildQueryString(tab: "all" | "favorites", filters: FilterState, debouncedSearch: string): string {
+function buildQueryString(
+  tab: "all" | "favorites",
+  filters: FilterState,
+  debouncedSearch: string,
+): string {
   const params = new URLSearchParams();
 
   if (tab === "favorites") {
@@ -95,9 +99,12 @@ export function App() {
   }, [filters.search]);
 
   // Reset visible count when filters or tab change
-  useEffect(() => {
+  const currentFilterKey = `${debouncedSearch}|${filters.ias}|${filters.voivodeship}|${filters.auctionType}|${filters.hideExpired}|${filters.hideArchived}|${activeTab}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(currentFilterKey);
+  if (prevFilterKey !== currentFilterKey) {
+    setPrevFilterKey(currentFilterKey);
     setVisibleCount(PAGE_SIZE);
-  }, [debouncedSearch, filters.ias, filters.voivodeship, filters.auctionType, filters.hideExpired, filters.hideArchived, activeTab]);
+  }
 
   // Sync state to URL search params
   const isInitialMount = useRef(true);
@@ -132,7 +139,7 @@ export function App() {
     filters.voivodeship ||
     filters.auctionType ||
     !filters.hideExpired ||
-    !filters.hideArchived
+    !filters.hideArchived,
   );
 
   const filteredAuctions = useMemo(() => {
