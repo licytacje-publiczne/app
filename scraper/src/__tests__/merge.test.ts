@@ -1,44 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Auction } from "../../../shared/types.js";
-
-/**
- * Tests for the merge logic extracted from index.ts.
- * We import the functions directly — but since they're not exported,
- * we replicate the merge logic here for testing.
- */
-
-// ─── Replicate merge logic for testing ──────────────────────────
-
-function mergeAuctions(
-  existingAuctions: Auction[],
-  newAuctions: Auction[],
-  scrapedIasIds: Set<string>,
-): Auction[] {
-  const newById = new Map<string, Auction>();
-  for (const auction of newAuctions) {
-    newById.set(auction.id, auction);
-  }
-
-  const merged = new Map<string, Auction>();
-
-  for (const existing of existingAuctions) {
-    if (newById.has(existing.id)) {
-      merged.set(existing.id, newById.get(existing.id)!);
-    } else if (scrapedIasIds.has(existing.ias)) {
-      merged.set(existing.id, { ...existing, archived: true });
-    } else {
-      merged.set(existing.id, existing);
-    }
-  }
-
-  for (const auction of newAuctions) {
-    if (!merged.has(auction.id)) {
-      merged.set(auction.id, auction);
-    }
-  }
-
-  return Array.from(merged.values());
-}
+import { mergeAuctions } from "../merge.js";
 
 // ─── Test factory ───────────────────────────────────────────────
 
@@ -177,6 +139,19 @@ describe("mergeAuctions", () => {
     const fresh: Auction[] = [];
 
     const result = mergeAuctions(existing, fresh, new Set(["Katowice"]));
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.archived).toBe(true);
+  });
+
+  it("correctly archives when scraped identifiers include lowercase technical IDs", () => {
+    const existing = [
+      makeAuction({ id: "bmw123", ias: "Poznań", title: "Stare BMW" }),
+    ];
+    const fresh: Auction[] = [];
+
+    // scrapedIasIdentifiers contains "poznan" and "Poznań"
+    const result = mergeAuctions(existing, fresh, new Set(["poznan", "Poznań"]));
 
     expect(result).toHaveLength(1);
     expect(result[0]!.archived).toBe(true);

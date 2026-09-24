@@ -6,6 +6,7 @@ import { IAS_CONFIGS, SCRAPE_CONCURRENCY } from "./config.js";
 import { scrapeGovpl } from "./platforms/govpl.js";
 import { scrapeBip } from "./platforms/bip.js";
 import { log } from "./utils.js";
+import { mergeAuctions } from "./merge.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -30,68 +31,6 @@ function loadExistingAuctions(outputPath: string): Auction[] {
   }
 }
 
-/**
- * Merge newly scraped auctions with existing data.
- *
- * Strategy:
- * - If an auction exists in new data → replace with new version (update lastSeenAt)
- * - If an auction exists in old data but NOT in new data AND its IAS was scraped → mark as archived
- * - If an auction exists in old data but its IAS was NOT scraped (partial scrape) → keep as-is
- * - New auctions → add normally
- *
- * @param existingAuctions - Previously saved auctions
- * @param newAuctions - Freshly scraped auctions
- * @param scrapedIasIds - Set of IAS IDs that were included in this scrape run
- */
-function mergeAuctions(
-  existingAuctions: Auction[],
-  newAuctions: Auction[],
-  scrapedIasIds: Set<string>,
-): Auction[] {
-  const newById = new Map<string, Auction>();
-  for (const auction of newAuctions) {
-    newById.set(auction.id, auction);
-  }
-
-  const merged = new Map<string, Auction>();
-
-  // First: process existing auctions
-  for (const existing of existingAuctions) {
-    if (newById.has(existing.id)) {
-      // Auction still exists on source — use new version (already has lastSeenAt set)
-      merged.set(existing.id, newById.get(existing.id)!);
-    } else if (scrapedIasIds.has(existing.ias)) {
-      // Auction's IAS was scraped but auction wasn't found — mark as archived
-      if (!existing.archived) {
-        log(`  Archiving: [${existing.ias}] ${existing.title.substring(0, 60)}...`);
-      }
-      merged.set(existing.id, {
-        ...existing,
-        archived: true,
-        // Keep original lastSeenAt — it reflects the last time it was actually on the site
-      });
-    } else {
-      // Auction's IAS was NOT scraped in this run (partial scrape) — keep as-is
-      merged.set(existing.id, existing);
-    }
-  }
-
-  // Second: add any genuinely new auctions (not seen before)
-  let newCount = 0;
-  for (const auction of newAuctions) {
-    if (!merged.has(auction.id)) {
-      merged.set(auction.id, auction);
-      newCount++;
-    }
-  }
-
-  if (newCount > 0) {
-    log(`  ${newCount} new auctions added`);
-  }
-
-  return Array.from(merged.values());
-}
-
 async function main() {
   const args = process.argv.slice(2);
   const platformFilter = args.includes("--platform") ? args[args.indexOf("--platform") + 1] : null;
@@ -112,7 +51,11 @@ async function main() {
     return true;
   });
 
-  const scrapedIasIds = new Set(configs.map((c) => c.id));
+  const scrapedIasIdentifiers = new Set<string>();
+  for (const c of configs) {
+    scrapedIasIdentifiers.add(c.id);
+    scrapedIasIdentifiers.add(c.city);
+  }
   const isPartialScrape = configs.length < IAS_CONFIGS.length;
 
   log(`Scraping ${configs.length} IAS offices (concurrency: ${SCRAPE_CONCURRENCY})`);
@@ -167,7 +110,7 @@ async function main() {
       log(
         `\nMerging ${freshAuctions.length} fresh auctions with ${existingAuctions.length} existing...`,
       );
-      finalAuctions = mergeAuctions(existingAuctions, freshAuctions, scrapedIasIds);
+      finalAuctions = mergeAuctions(existingAuctions, freshAuctions, scrapedIasIdentifiers);
 
       const archivedCount = finalAuctions.filter((a) => a.archived).length;
       const activeCount = finalAuctions.length - archivedCount;
