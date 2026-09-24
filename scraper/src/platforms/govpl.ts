@@ -108,22 +108,21 @@ function parseListingPage(
   const entries: ListingEntry[] = [];
 
   // Gov.pl listing structure:
-  // article.article-area__article > div.art-prev > ul > li > a
-  //   Inside each <a>:
-  //     div > div.event > span.date + span.location
-  //     div > div.title (the auction title)
-  //     div > div.intro (optional description)
-  $("div.art-prev ul > li > a[href]").each((_, el) => {
-    const $el = $(el);
-    const href = $el.attr("href");
+  // Variant A (newer): div.event (date, location) + div.title > a[href]
+  // Variant B (older): article.article-area__article > div.art-prev > ul > li > a[href]
+  $("div.title a[href]").each((_, el) => {
+    const $link = $(el);
+    const href = $link.attr("href");
     if (!href || href.startsWith("#")) return;
 
-    const date = $el.find(".date").text().trim();
-    const source = $el.find(".location").text().trim();
-    const title = $el.find(".title").text().trim();
-
+    const title = $link.text().trim();
     if (!title) return;
 
+    const container = $link.closest("li, article, div.art-prev > ul > li, div.art-prev > div, div.event-container");
+    const parentContainer = container.length > 0 ? container : $link.parent().parent();
+
+    const date = parentContainer.find(".date").first().text().trim();
+    const source = parentContainer.find(".location").first().text().trim();
     const detailUrl = href.startsWith("http") ? href : `https://www.gov.pl${href}`;
 
     entries.push({
@@ -133,6 +132,29 @@ function parseListingPage(
       detailUrl,
     });
   });
+
+  if (entries.length === 0) {
+    $("div.art-prev ul > li > a[href]").each((_, el) => {
+      const $el = $(el);
+      const href = $el.attr("href");
+      if (!href || href.startsWith("#")) return;
+
+      const date = $el.find(".date").text().trim();
+      const source = $el.find(".location").text().trim();
+      const title = $el.find(".title").text().trim() || $el.text().trim();
+
+      if (!title) return;
+
+      const detailUrl = href.startsWith("http") ? href : `https://www.gov.pl${href}`;
+
+      entries.push({
+        title,
+        date,
+        source,
+        detailUrl,
+      });
+    });
+  }
 
   // Determine total pages from pagination
   let totalPages = 1;

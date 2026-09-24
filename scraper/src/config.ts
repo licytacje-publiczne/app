@@ -1,7 +1,7 @@
 import type { IASConfig } from "../../shared/types.js";
 
 export const IAS_CONFIGS: IASConfig[] = [
-  // ===== gov.pl platform (6 IAS) =====
+  // ===== gov.pl platform (9 IAS) =====
   {
     id: "bialystok",
     name: "Izba Administracji Skarbowej w Białymstoku",
@@ -9,6 +9,22 @@ export const IAS_CONFIGS: IASConfig[] = [
     voivodeship: "podlaskie",
     platform: "govpl",
     listingUrl: "https://www.gov.pl/web/ias-bialystok/obwieszczenia-o-licytacjach",
+  },
+  {
+    id: "bydgoszcz",
+    name: "Izba Administracji Skarbowej w Bydgoszczy",
+    city: "Bydgoszcz",
+    voivodeship: "kujawsko-pomorskie",
+    platform: "govpl",
+    listingUrl: "https://www.gov.pl/web/ias-bydgoszcz/obwieszczenia-o-licytacjach",
+  },
+  {
+    id: "gdansk",
+    name: "Izba Administracji Skarbowej w Gdańsku",
+    city: "Gdańsk",
+    voivodeship: "pomorskie",
+    platform: "govpl",
+    listingUrl: "https://www.gov.pl/web/ias-gdansk/obwieszczenia-o-licytacjach",
   },
   {
     id: "katowice",
@@ -35,6 +51,14 @@ export const IAS_CONFIGS: IASConfig[] = [
     listingUrl: "https://www.gov.pl/web/ias-lodz/obwieszczenia-o-licytacjach",
   },
   {
+    id: "olsztyn",
+    name: "Izba Administracji Skarbowej w Olsztynie",
+    city: "Olsztyn",
+    voivodeship: "warmińsko-mazurskie",
+    platform: "govpl",
+    listingUrl: "https://www.gov.pl/web/ias-olsztyn/obwieszczenia-o-licytacjach",
+  },
+  {
     id: "rzeszow",
     name: "Izba Administracji Skarbowej w Rzeszowie",
     city: "Rzeszów",
@@ -51,25 +75,7 @@ export const IAS_CONFIGS: IASConfig[] = [
     listingUrl: "https://www.gov.pl/web/ias-wroclaw/obwieszczenia-o-licytacjach",
   },
 
-  // ===== old BIP platform (10 IAS) =====
-  {
-    id: "bydgoszcz",
-    name: "Izba Administracji Skarbowej w Bydgoszczy",
-    city: "Bydgoszcz",
-    voivodeship: "kujawsko-pomorskie",
-    platform: "bip",
-    listingUrl:
-      "https://www.kujawsko-pomorskie.kas.gov.pl/izba-administracji-skarbowej-w-bydgoszczy/ogloszenia/obwieszczenia-o-licytacjach",
-  },
-  {
-    id: "gdansk",
-    name: "Izba Administracji Skarbowej w Gdańsku",
-    city: "Gdańsk",
-    voivodeship: "pomorskie",
-    platform: "bip",
-    listingUrl:
-      "https://www.pomorskie.kas.gov.pl/izba-administracji-skarbowej-w-gdansku/ogloszenia/obwieszczenia-o-licytacjach",
-  },
+  // ===== old BIP platform (7 IAS) =====
   {
     id: "krakow",
     name: "Izba Administracji Skarbowej w Krakowie",
@@ -87,15 +93,6 @@ export const IAS_CONFIGS: IASConfig[] = [
     platform: "bip",
     listingUrl:
       "https://www.lubelskie.kas.gov.pl/izba-administracji-skarbowej-w-lublinie/ogloszenia/obwieszczenia-o-licytacjach",
-  },
-  {
-    id: "olsztyn",
-    name: "Izba Administracji Skarbowej w Olsztynie",
-    city: "Olsztyn",
-    voivodeship: "warmińsko-mazurskie",
-    platform: "bip",
-    listingUrl:
-      "https://www.warminsko-mazurskie.kas.gov.pl/izba-administracji-skarbowej-w-olsztynie/ogloszenia/obwieszczenia-o-licytacjach",
   },
   {
     id: "opole",
